@@ -1,0 +1,9 @@
+{% extends "public_base.html" %}
+{% block titre %}Erreur {{ code }}{% endblock %}
+{% block contenu %}
+<div class="carte carte-publique carte-merci anim d1">
+  <div class="coche coche-gris">{{ code }}</div>
+  <h1>{{ message }}</h1>
+  <p class="public-intro"><a href="{{ url_for('accueil') }}">Retour à l'accueil</a></p>
+</div>
+{% endblock %}

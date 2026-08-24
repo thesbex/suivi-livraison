@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titre %}Email — {{ mail.objet }}{% endblock %}
+{% block contenu %}
+<header class="entete anim">
+  <div>
+    <p class="fil"><a href="{{ url_for('dashboard') }}">Tableau de bord</a> /
+       <a href="{{ url_for('detail_livraison', liv_id=mail.livraison_id) }}">livraison</a> / email</p>
+    <h1>{{ mail.objet }}</h1>
+    <p class="sous-titre">
+      Type : <strong>{{ mail.type }}</strong> · à {{ mail.destinataire }} · {{ mail.envoye_le | dt_fr }}
+      · <span class="etiquette-envoi e-{{ mail.statut_envoi | replace('é','e') }}">{{ mail.statut_envoi }}</span>
+    </p>
+  </div>
+</header>
+<div class="carte carte-email anim d1">
+  <iframe src="{{ url_for('corps_email', email_id=mail.id) }}" title="Aperçu de l'email" sandbox=""></iframe>
+</div>
+<p class="note anim d2">« simulé » : l'email est enregistré (RG06) mais aucun serveur SMTP n'est configuré.
+  Renseignez SMTP_HOST, SMTP_PORT, SMTP_FROM (et SMTP_USER / SMTP_PASS) pour un envoi réel.</p>
+{% endblock %}

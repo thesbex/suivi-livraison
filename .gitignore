@@ -1,0 +1,23 @@
+# Données et secrets — ne doivent jamais partir sur le dépôt
+suivi.db
+suivi.db-wal
+suivi.db-shm
+.secret_key
+erreurs.log
+
+# Exécutable et paquets générés
+SuiviLivraison.exe
+*.zip
+dist/
+build/
+*.spec
+
+# Fichiers de travail
+__pycache__/
+*.pyc
+captures/
+captures-evolutions/
+DEMARRER.bat
+
+# Copie de travail créée localement, à ne pas versionner
+New folder/

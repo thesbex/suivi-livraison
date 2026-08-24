@@ -1,0 +1,54 @@
+{% extends "public_base.html" %}
+{% block titre %}Votre avis{% endblock %}
+{% block contenu %}
+<div class="carte carte-publique anim d1">
+  <h1>Votre avis compte</h1>
+  <p class="public-intro">{{ liv.vehicule }} · livré {{ liv.date_livraison | date_longue }}{%
+    if liv.convoyeur_nom %} par {{ liv.convoyeur_nom }}{% endif %}.
+    Merci de prendre une minute pour évaluer votre livraison.</p>
+</div>
+
+<form method="post" class="formulaire-avis">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+  <div class="carte carte-publique question anim d1">
+    <h3><span class="num-q">1</span>Le véhicule a-t-il été livré à l'heure ?</h3>
+    <div class="segments">
+      <label><input type="radio" name="q1" value="oui" required
+        {{ 'checked' if reponses.get('q1') == 'oui' }}><span>Oui</span></label>
+      <label><input type="radio" name="q1" value="non"
+        {{ 'checked' if reponses.get('q1') == 'non' }}><span>Non</span></label>
+    </div>
+  </div>
+
+  {% for nom, question in [('q2', "Comment évaluez-vous l'état du véhicule ?"),
+                           ('q3', "Comment évaluez-vous le professionnalisme de notre agent ?"),
+                           ('q4', "Le véhicule était-il propre ?"),
+                           ('q5', "Le véhicule correspond-il à votre réservation ?"),
+                           ('q6', "Recommanderez-vous notre agence ?")] %}
+  <div class="carte carte-publique question anim {{ 'd' ~ loop.index }}">
+    <h3><span class="num-q">{{ loop.index + 1 }}</span>{{ question }}</h3>
+    <div class="notation">
+      <div class="etoiles" data-libelle="lib-{{ nom }}">
+        {% for n in [5, 4, 3, 2, 1] %}
+        <input type="radio" id="{{ nom }}-{{ n }}" name="{{ nom }}" value="{{ n }}" required
+               {{ 'checked' if reponses.get(nom) == n|string }}>
+        <label for="{{ nom }}-{{ n }}" title="{{ n }}/5">★</label>
+        {% endfor %}
+      </div>
+      <output id="lib-{{ nom }}" class="libelle-note"></output>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="carte carte-publique question anim d4">
+    <h3><span class="num-q">7</span>Commentaire libre</h3>
+    <textarea name="q7" rows="4" class="zone-texte"
+      placeholder="Partagez votre expérience… (facultatif)">{{ reponses.get('q7', '') }}</textarea>
+  </div>
+
+  <div class="anim d4">
+    <button type="submit" class="btn btn-plein btn-large btn-bloc">Envoyer</button>
+  </div>
+</form>
+{% endblock %}

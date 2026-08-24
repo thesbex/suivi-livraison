@@ -1,0 +1,60 @@
+{% extends "public_base.html" %}
+{% block titre %}Suivi de votre livraison{% endblock %}
+{% block contenu %}
+<div class="carte carte-publique anim d1">
+  <h1>Bonjour {{ liv.client_prenom }},</h1>
+  <p class="public-intro">
+    {% if liv.statut in ('Créée', 'Email envoyé', 'En attente') %}
+      Votre véhicule sera livré <strong>{{ liv.date_livraison | date_longue }} à {{ liv.heure_livraison }}</strong>.
+    {% elif liv.statut == 'En cours' %}
+      Votre convoyeur est en route — livraison prévue à <strong>{{ liv.heure_livraison }}</strong>.
+    {% else %}
+      Votre véhicule a été livré {{ liv.date_livraison | date_longue }}
+      à {{ liv.heure_reelle or liv.heure_livraison }}.
+    {% endif %}
+  </p>
+  {% if message %}<div class="flash flash-info">{{ message }}</div>{% endif %}
+
+  <ol class="parcours horizontalisable">
+    {% for s in STATUTS %}
+      <li class="{{ 'fait' if loop.index0 < etape else ('actuel' if loop.index0 == etape else '') }}"><i></i>{{ s }}</li>
+    {% endfor %}
+  </ol>
+</div>
+
+<div class="carte carte-publique anim d2">
+  <h2>Votre livraison</h2>
+  <dl class="fiche">
+    <div><dt>Véhicule</dt><dd>{{ liv.vehicule }}
+      {% if liv.immatriculation %}<span class="mono plaque">{{ liv.immatriculation }}</span>{% endif %}</dd></div>
+    <div><dt>Réservation</dt><dd class="mono">{{ liv.reservation_num }}</dd></div>
+    <div><dt>Date</dt><dd>{{ liv.date_livraison | date_longue }}</dd></div>
+    <div><dt>Heure</dt><dd class="mono">{{ liv.heure_livraison }}</dd></div>
+    <div class="pleine"><dt>Lieu</dt><dd>{{ liv.lieu_livraison }}</dd></div>
+    {% if liv.convoyeur_nom %}
+      <div><dt>Convoyeur</dt><dd>{{ liv.convoyeur_nom }}</dd></div>
+      <div><dt>Téléphone</dt><dd><a class="mono" href="tel:{{ liv.convoyeur_tel | replace(' ', '') }}">{{ liv.convoyeur_tel }}</a></dd></div>
+    {% else %}
+      <div class="pleine"><dt>Convoyeur</dt>
+        <dd class="sourdine">Les coordonnées de votre convoyeur vous seront communiquées prochainement.</dd></div>
+    {% endif %}
+  </dl>
+</div>
+
+<div class="carte carte-publique anim d2">
+  <h2>Votre retour</h2>
+  <dl class="fiche">
+    <div><dt>Date</dt><dd>{{ liv.date_retour | date_longue }}</dd></div>
+    <div><dt>Heure</dt><dd class="mono">{{ liv.heure_retour }}</dd></div>
+    <div class="pleine"><dt>Lieu</dt><dd>{{ liv.lieu_retour }}</dd></div>
+  </dl>
+</div>
+
+{% if liv.statut in ('Livrée', 'Avis envoyé') %}
+<div class="carte carte-publique carte-cta anim d3">
+  <h2>Votre avis compte</h2>
+  <p>Une minute suffit pour évaluer votre livraison et nous aider à nous améliorer.</p>
+  <a href="{{ url_for('avis_client', token=liv.token) }}" class="btn btn-plein btn-large">Donner mon avis</a>
+</div>
+{% endif %}
+{% endblock %}

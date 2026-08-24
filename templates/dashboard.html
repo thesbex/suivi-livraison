@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block titre %}Tableau de bord — Suivi Livraison{% endblock %}
+{% block contenu %}
+<header class="entete anim">
+  <div>
+    <h1>Tableau de bord</h1>
+    <p class="sous-titre">{{ aujourdhui | date_longue }}</p>
+  </div>
+  <a href="{{ url_for('nouvelle_livraison') }}" class="btn btn-plein">+ Nouvelle livraison</a>
+</header>
+
+<div class="compteurs anim d1">
+  <div class="compteur"><strong>{{ compteurs.jour }}</strong><span>livraison{{ 's' if compteurs.jour > 1 }} aujourd'hui</span></div>
+  <div class="compteur"><strong>{{ compteurs.attente }}</strong><span>en attente / en cours</span></div>
+  <div class="compteur"><strong>{{ compteurs.avis }}</strong><span>avis reçus</span></div>
+  {% if compteurs.non_affectees %}
+  <a class="compteur compteur-alerte" href="{{ url_for('dashboard', convoyeur='aucun') }}">
+    <strong>{{ compteurs.non_affectees }}</strong>
+    <span>sans convoyeur — à affecter</span>
+  </a>
+  {% endif %}
+</div>
+
+<form class="filtres anim d2" method="get">
+  <input type="search" name="q" value="{{ filtres.q }}" placeholder="Rechercher client, code, véhicule, immatriculation…">
+  <select name="statut" data-autosubmit>
+    <option value="">Tous les statuts</option>
+    {% for s in STATUTS %}
+      <option value="{{ s }}" {{ 'selected' if filtres.statut == s }}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  <select name="convoyeur" data-autosubmit>
+    <option value="">Tous les convoyeurs</option>
+    <option value="aucun" {{ 'selected' if filtres.convoyeur == 'aucun' }}>Non affectées</option>
+    {% for c in convoyeurs %}
+      <option value="{{ c.id }}" {{ 'selected' if filtres.convoyeur == c.id|string }}>{{ c.nom }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-ligne">Filtrer</button>
+  {% if filtres.q or filtres.statut or filtres.convoyeur %}
+    <a href="{{ url_for('dashboard') }}" class="btn btn-fantome">Réinitialiser</a>
+  {% endif %}
+</form>
+
+<div class="carte carte-tableau anim d3">
+  <div class="defile-x">
+  <table class="tableau">
+    <thead>
+      <tr>
+        <th>Réservation</th><th>Client</th><th>Véhicule</th><th>Convoyeur</th>
+        <th>Date</th><th>Heure prévue</th><th>Heure réelle</th><th>Statut</th>
+        <th>Satisfaction</th><th>Avis</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in livraisons %}
+      <tr data-href="{{ url_for('detail_livraison', liv_id=l.id) }}">
+        <td>
+          <span class="mono fort">{{ l.reservation_num }}</span>
+          <small class="mono sourdine">{{ l.code }}</small>
+        </td>
+        <td><span class="fort">{{ l.client_prenom }} {{ l.client_nom }}</span>
+            <small class="sourdine">{{ l.lieu_livraison }}</small></td>
+        <td>{{ l.vehicule }}
+          {% if l.immatriculation %}<small class="mono sourdine">{{ l.immatriculation }}</small>{% endif %}</td>
+        <td>
+          {% if l.convoyeur_nom %}{{ l.convoyeur_nom }}
+          {% else %}<span class="non-affecte">Non affecté</span>{% endif %}
+        </td>
+        <td class="nowrap">{{ l.date_livraison | date_fr }}</td>
+        <td class="mono">{{ l.heure_livraison }}</td>
+        <td class="mono">
+          {% if l.heure_reelle %}
+            {{ l.heure_reelle }}
+            {% set r = retard_minutes(l) %}
+            {% if r is not none and r > SEUIL_RETARD %}
+              <small class="retard">+{{ r }} min</small>
+            {% endif %}
+          {% else %}<span class="sourdine">—</span>{% endif %}
+        </td>
+        <td><span class="pastille {{ l.statut | statut_cls }}"><i></i>{{ l.statut }}</span></td>
+        <td>
+          {% if l.avis_score is not none %}
+            <span class="etoiles-aff" title="{{ l.avis_score }}/5">
+              <span style="width:{{ (l.avis_score / 5 * 100) | round(0) }}%">★★★★★</span>★★★★★
+            </span>
+            <small class="fort">{{ l.avis_score }}</small>
+          {% else %}<span class="sourdine">—</span>{% endif %}
+        </td>
+        <td>
+          {% if l.avis_commentaire %}
+            <span class="bulle" title="{{ l.avis_commentaire }}">💬</span>
+          {% elif l.avis_score is not none %}<span class="sourdine">sans texte</span>
+          {% else %}<span class="sourdine">—</span>{% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="10" class="vide">Aucune livraison ne correspond à ces critères.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

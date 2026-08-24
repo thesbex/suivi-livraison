@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titre %}Votre livraison{% endblock %} — Suivi Livraison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="public">
+  <div class="public-colonne">
+    <header class="public-entete anim">
+      <div class="marque-bande"></div>
+      <span class="public-marque">SUIVI LIVRAISON</span>
+      <span class="public-sous">Agence de location de véhicules</span>
+    </header>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="flash flash-{{ cat }} anim">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block contenu %}{% endblock %}
+    <footer class="public-pied">Lien personnel et sécurisé · valable 30 jours</footer>
+  </div>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titre %}Avis clients — Suivi Livraison{% endblock %}
+{% block contenu %}
+<header class="entete anim">
+  <div>
+    <h1>Avis clients</h1>
+    <p class="sous-titre">{{ avis | length }} avis reçu{{ 's' if avis|length > 1 }}
+      {% if moyenne %} · moyenne <strong>{{ moyenne | round(2) }}/5</strong>{% endif %}</p>
+  </div>
+</header>
+
+<div class="liste-avis">
+  {% for a in avis %}
+  <article class="carte carte-avis anim {{ 'd' ~ (loop.index if loop.index < 5 else 4) }}">
+    <header>
+      <div>
+        <strong>{{ a.client_prenom }} {{ a.client_nom }}</strong>
+        <small class="sourdine">{{ a.vehicule }} · livré le {{ a.date_livraison | date_fr }}
+          {% if a.convoyeur_nom %}par {{ a.convoyeur_nom }}{% endif %}</small>
+      </div>
+      <span class="note-globale">{{ a.score }}<small>/5</small></span>
+    </header>
+    <div class="ligne-notes">
+      <span class="etoiles-aff grande"><span style="width:{{ (a.score / 5 * 100) | round(0) }}%">★★★★★</span>★★★★★</span>
+      <span class="pastille {{ 'st-livree' if a.q1_a_lheure else 'st-retard' }}"><i></i>{{ 'À l\'heure' if a.q1_a_lheure else 'En retard' }}</span>
+    </div>
+    {% if a.commentaire %}<blockquote>« {{ a.commentaire }} »</blockquote>{% endif %}
+    <footer>
+      <small class="sourdine">{{ a.cree_le | dt_fr }}</small>
+      <a href="{{ url_for('detail_livraison', liv_id=a.liv_id) }}" class="btn btn-mini">Voir la livraison <span class="mono">{{ a.code }}</span></a>
+    </footer>
+  </article>
+  {% else %}
+  <div class="carte anim"><p class="vide">Aucun avis pour le moment — ils apparaîtront ici dès qu'un client répondra au formulaire.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}

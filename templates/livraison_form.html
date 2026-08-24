@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block titre %}{{ 'Nouvelle livraison' if mode == 'creation' else 'Modifier la livraison' }} — Suivi Livraison{% endblock %}
+
+{% macro champ_lieu(nom, libelle, valeur) %}
+  {% set dans_liste = valeur in TOUS_LES_LIEUX %}
+  <div class="champ">{{ libelle }}
+    <select data-liste-select="{{ nom }}" required>
+      <option value="">Choisir un lieu…</option>
+      {% for groupe, lieux in LIEUX %}
+        <optgroup label="{{ groupe }}">
+          {% for lieu in lieux %}
+            <option value="{{ lieu }}" {{ 'selected' if valeur == lieu }}>{{ lieu }}</option>
+          {% endfor %}
+        </optgroup>
+      {% endfor %}
+      <option value="__autre__" {{ 'selected' if valeur and not dans_liste }}>Autre — saisir une adresse…</option>
+    </select>
+    <div class="champ-libre" data-liste-libre="{{ nom }}" hidden>
+      <input type="text" name="{{ nom }}" value="{{ valeur or '' }}"
+             placeholder="Adresse précise : hôtel, agence, domicile…">
+    </div>
+  </div>
+{% endmacro %}
+
+{% block contenu %}
+<header class="entete anim">
+  <div>
+    <h1>{{ 'Nouvelle livraison' if mode == 'creation' else 'Modifier la livraison' }}</h1>
+    <p class="sous-titre">
+      {% if mode == 'creation' %}
+        À la validation : identifiant unique, lien client sécurisé et email automatique.
+      {% else %}
+        {{ livraison.code }} — toute modification est historisée.
+      {% endif %}
+    </p>
+  </div>
+</header>
+
+<form method="post" class="anim d1">
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+
+  <div class="grille-form">
+    <fieldset class="carte">
+      <legend>Informations client</legend>
+      <div class="deux-cols">
+        <label class="champ">Prénom
+          <input name="client_prenom" value="{{ livraison.client_prenom or '' }}" required></label>
+        <label class="champ">Nom
+          <input name="client_nom" value="{{ livraison.client_nom or '' }}" required></label>
+      </div>
+      <label class="champ">Téléphone
+        <input name="client_tel" value="{{ livraison.client_tel or '' }}" placeholder="+212 6 XX XX XX XX" required></label>
+      <label class="champ">Email
+        <input type="email" name="client_email" value="{{ livraison.client_email or '' }}" required></label>
+      {% set pays = livraison.pays_depart %}
+      <div class="champ">Pays de départ <small class="facultatif">facultatif</small>
+        <select data-liste-select="pays_depart">
+          <option value="">Non renseigné</option>
+          {% for p in PAYS %}
+            <option value="{{ p }}" {{ 'selected' if pays == p }}>{{ p }}</option>
+          {% endfor %}
+          <option value="__autre__" {{ 'selected' if pays and pays not in PAYS }}>Autre — saisir un pays…</option>
+        </select>
+        <div class="champ-libre" data-liste-libre="pays_depart" hidden>
+          <input type="text" name="pays_depart" value="{{ pays or '' }}" placeholder="Nom du pays">
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="carte">
+      <legend>Informations réservation</legend>
+      <label class="champ">Numéro de réservation
+        <input name="reservation_num" value="{{ livraison.reservation_num or '' }}" placeholder="RES-0000" required></label>
+      <label class="champ">Véhicule
+        <input name="vehicule" value="{{ livraison.vehicule or '' }}" placeholder="Marque et modèle" required></label>
+      <label class="champ">Immatriculation <small class="facultatif">facultatif</small>
+        <input name="immatriculation" value="{{ livraison.immatriculation or '' }}"
+               placeholder="À renseigner plus tard si le véhicule n'est pas encore attribué"></label>
+    </fieldset>
+
+    <fieldset class="carte">
+      <legend>Livraison</legend>
+      <div class="deux-cols">
+        <label class="champ">Date de début
+          <input type="date" name="date_livraison" value="{{ livraison.date_livraison or '' }}" required></label>
+        <label class="champ">Heure
+          <input type="time" name="heure_livraison" value="{{ livraison.heure_livraison or '' }}" required></label>
+      </div>
+      {{ champ_lieu('lieu_livraison', 'Lieu de livraison', livraison.lieu_livraison) }}
+    </fieldset>
+
+    <fieldset class="carte">
+      <legend>Retour</legend>
+      <div class="deux-cols">
+        <label class="champ">Date de retour
+          <input type="date" name="date_retour" value="{{ livraison.date_retour or '' }}" required></label>
+        <label class="champ">Heure
+          <input type="time" name="heure_retour" value="{{ livraison.heure_retour or '' }}" required></label>
+      </div>
+      {{ champ_lieu('lieu_retour', 'Lieu de retour', livraison.lieu_retour) }}
+    </fieldset>
+
+    <fieldset class="carte pleine-largeur">
+      <legend>Convoyeur <small class="facultatif">facultatif</small></legend>
+      <div class="deux-cols">
+        <label class="champ">Nom du convoyeur
+          <select name="convoyeur_id" id="choix-convoyeur">
+            <option value="" {{ 'selected' if not livraison.convoyeur_id }}>Non affecté — à désigner plus tard</option>
+            {% for c in convoyeurs %}
+              <option value="{{ c.id }}" data-tel="{{ c.telephone }}"
+                {{ 'selected' if livraison.convoyeur_id|string == c.id|string }}>{{ c.nom }}</option>
+            {% endfor %}
+          </select></label>
+        <div class="champ">Téléphone
+          <output id="tel-convoyeur" class="sortie mono">—</output>
+        </div>
+      </div>
+      <p class="note">Une livraison peut être enregistrée sans convoyeur : elle apparaîtra comme
+        <strong>non affectée</strong> sur le tableau de bord, et le convoyeur pourra être désigné plus tard.
+        Une fois désigné, son nom et son téléphone sont transmis au client.
+        <a href="{{ url_for('gestion_convoyeurs') }}">Gérer les convoyeurs</a></p>
+    </fieldset>
+  </div>
+
+  <div class="barre-actions">
+    <button type="submit" class="btn btn-plein btn-large">
+      {{ 'Valider la livraison' if mode == 'creation' else 'Enregistrer les modifications' }}
+    </button>
+    <a class="btn btn-fantome"
+       href="{{ url_for('detail_livraison', liv_id=livraison.id) if mode == 'edition' and livraison.id else url_for('dashboard') }}">Annuler</a>
+    {% if mode == 'creation' %}
+      <span class="note">Un email « Votre véhicule sera livré prochainement » partira automatiquement (RG01).</span>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

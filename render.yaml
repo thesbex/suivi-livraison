@@ -1,0 +1,36 @@
+# Déploiement Render — https://render.com
+# Ce fichier suffit : Render détecte le service et l'installe automatiquement.
+services:
+  - type: web
+    name: suivi-livraison
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+    healthCheckPath: /connexion
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.4"
+      # Clé de signature des sessions, générée une fois par Render
+      - key: SECRET_KEY
+        generateValue: true
+      # --- À renseigner dans l'interface Render (onglet Environment) ---
+      # DATABASE_URL : chaîne de connexion PostgreSQL (Neon, Supabase…)
+      # BASE_URL     : https://suivi-livraison.onrender.com  (liens des emails)
+      # SMTP_FROM    : adresse expéditeur validée chez Brevo
+      # SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS  ou  BREVO_API_KEY
+      - key: DATABASE_URL
+        sync: false
+      - key: BASE_URL
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false

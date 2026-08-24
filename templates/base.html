@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titre %}Suivi Livraison{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23131A26'/%3E%3Cpath d='M6 20h12l2-6h4l3 4v4h-2a3 3 0 0 1-6 0h-6a3 3 0 0 1-6 0H6z' fill='%23E85D1F'/%3E%3C/svg%3E">
+</head>
+<body class="app">
+  <aside class="lateral">
+    <div class="marque">
+      <div class="marque-bande"></div>
+      <a href="{{ url_for('accueil') }}" class="marque-nom">SUIVI<br>LIVRAISON</a>
+      <span class="marque-sous">Agence de location</span>
+    </div>
+    <nav class="menu">
+      {% if session.role == 'admin' %}
+        <a href="{{ url_for('dashboard') }}" class="{{ 'actif' if request.path == '/admin' }}">
+          <svg viewBox="0 0 20 20"><path d="M3 3h6v6H3zM11 3h6v4h-6zM3 11h6v6H3zM11 9h6v8h-6z"/></svg>
+          Tableau de bord</a>
+        <a href="{{ url_for('nouvelle_livraison') }}" class="{{ 'actif' if 'nouvelle' in request.path }}">
+          <svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke-width="2.4" stroke-linecap="round"/></svg>
+          Nouvelle livraison</a>
+        <a href="{{ url_for('liste_avis') }}" class="{{ 'actif' if request.path.startswith('/admin/avis') }}">
+          <svg viewBox="0 0 20 20"><path d="M10 2l2.4 5 5.6.7-4.1 3.8 1.1 5.5L10 14.3 5 17l1.1-5.5L2 7.7 7.6 7z"/></svg>
+          Avis clients</a>
+        <a href="{{ url_for('config_email') }}" class="{{ 'actif' if request.path == '/admin/emails' }}">
+          <svg viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M2.5 5.5L10 11l7.5-5.5"/></svg>
+          Emails</a>
+        <a href="{{ url_for('stats') }}" class="{{ 'actif' if request.path.startswith('/admin/stats') }}">
+          <svg viewBox="0 0 20 20"><path d="M3 17V9M8 17V4M13 17v-6M18 17V7" stroke-width="2.6" stroke-linecap="round"/></svg>
+          Statistiques</a>
+        <a href="{{ url_for('gestion_convoyeurs') }}" class="{{ 'actif' if request.path.startswith('/admin/convoyeurs') }}">
+          <svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="3"/><path d="M2 17c0-3 2.2-5 5-5s5 2 5 5zM13.5 8.5a2.5 2.5 0 1 0 0-5M14 12c2.5.3 4 2 4 5h-3"/></svg>
+          Convoyeurs</a>
+      {% elif session.role == 'convoyeur' %}
+        <a href="{{ url_for('mes_livraisons') }}" class="{{ 'actif' if request.path.startswith('/convoyeur') }}">
+          <svg viewBox="0 0 20 20"><path d="M2 13h9l1.5-5H16l2.5 3.5V15h-1.6a2 2 0 0 1-3.8 0H8.9a2 2 0 0 1-3.8 0H2z"/></svg>
+          Mes livraisons</a>
+      {% endif %}
+    </nav>
+    <div class="lateral-pied">
+      <div class="utilisateur">
+        <span class="utilisateur-avatar">{{ session.nom[:1] }}</span>
+        <div>
+          <strong>{{ session.nom }}</strong>
+          <small>{{ 'Administrateur' if session.role == 'admin' else 'Convoyeur' }}</small>
+        </div>
+      </div>
+      <div class="lateral-actions">
+        <a href="{{ url_for('mot_de_passe') }}" title="Changer le mot de passe">Mot de passe</a>
+        <form method="post" action="{{ url_for('logout') }}">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <button type="submit">Déconnexion</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+
+  <main class="contenu">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashs">
+          {% for cat, msg in messages %}
+            <div class="flash flash-{{ cat }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block contenu %}{% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

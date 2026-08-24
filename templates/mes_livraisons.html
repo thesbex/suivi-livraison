@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block titre %}Mes livraisons — Suivi Livraison{% endblock %}
+{% block contenu %}
+<header class="entete anim">
+  <div>
+    <h1>Mes livraisons</h1>
+    <p class="sous-titre">Bonjour {{ session.nom.split(' ')[0] }} — {{ jour | length }} livraison{{ 's' if jour|length > 1 }} à effectuer aujourd'hui.</p>
+  </div>
+</header>
+
+<section class="anim d1">
+  <h2 class="titre-section">Aujourd'hui &amp; en retard</h2>
+  {% for l in jour %}
+  <article class="carte carte-mission {{ 'mission-encours' if l.statut == 'En cours' }}">
+    <header>
+      <div>
+        <span class="heure-mission mono">{{ l.heure_livraison }}</span>
+        <strong>{{ l.vehicule }}</strong>
+        {% if l.immatriculation %}<span class="mono plaque">{{ l.immatriculation }}</span>{% endif %}
+      </div>
+      <span class="pastille {{ l.statut | statut_cls }}"><i></i>{{ l.statut }}</span>
+    </header>
+    <p class="mission-lieu">📍 {{ l.lieu_livraison }}</p>
+    <p class="mission-client">Client : <strong>{{ l.client_prenom }} {{ l.client_nom }}</strong>
+      · <a href="tel:{{ l.client_tel | replace(' ', '') }}" class="mono">{{ l.client_tel }}</a></p>
+    {% if l.date_livraison < aujourdhui %}
+      <p class="retard">Livraison prévue le {{ l.date_livraison | date_fr }} — en retard.</p>
+    {% endif %}
+    <div class="mission-actions">
+      {% if l.statut == 'En attente' %}
+      <form method="post" action="{{ url_for('demarrer_livraison', liv_id=l.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <button class="btn btn-encre">Démarrer la livraison</button>
+      </form>
+      {% endif %}
+      <details class="confirmation">
+        <summary class="btn btn-plein">Livraison effectuée ✓</summary>
+        <form method="post" action="{{ url_for('confirmer_livraison', liv_id=l.id) }}" class="form-confirmation">
+          <input type="hidden" name="_csrf" value="{{ csrf }}">
+          <label class="champ">Heure réelle de livraison
+            <input type="time" name="heure_reelle" data-heure-auto required></label>
+          <label class="champ">Commentaire éventuel
+            <textarea name="commentaire" rows="2" placeholder="RAS, circulation, remarque client…"></textarea></label>
+          <button class="btn btn-plein">Confirmer — le client recevra l'email d'avis</button>
+        </form>
+      </details>
+    </div>
+  </article>
+  {% else %}
+  <div class="carte"><p class="vide">Rien à livrer aujourd'hui. 🎉</p></div>
+  {% endfor %}
+</section>
+
+<section class="anim d2">
+  <h2 class="titre-section">À venir</h2>
+  {% for l in a_venir %}
+  <article class="carte carte-mission compacte">
+    <header>
+      <div>
+        <span class="heure-mission mono">{{ l.date_livraison | date_fr }} · {{ l.heure_livraison }}</span>
+        <strong>{{ l.vehicule }}</strong>
+        {% if l.immatriculation %}<span class="mono plaque">{{ l.immatriculation }}</span>{% endif %}
+      </div>
+      <span class="pastille {{ l.statut | statut_cls }}"><i></i>{{ l.statut }}</span>
+    </header>
+    <p class="mission-lieu">📍 {{ l.lieu_livraison }} — {{ l.client_prenom }} {{ l.client_nom }}</p>
+  </article>
+  {% else %}
+  <div class="carte"><p class="vide">Aucune livraison planifiée.</p></div>
+  {% endfor %}
+</section>
+
+<section class="anim d3">
+  <h2 class="titre-section">Historique</h2>
+  {% for l in faites %}
+  <article class="carte carte-mission compacte">
+    <header>
+      <div>
+        <span class="heure-mission mono">{{ l.date_livraison | date_fr }} · {{ l.heure_reelle or l.heure_livraison }}</span>
+        <strong>{{ l.vehicule }}</strong>
+      </div>
+      <div class="ligne-notes">
+        {% if l.avis_score is not none %}
+          <span class="etoiles-aff" title="Avis client : {{ l.avis_score }}/5">
+            <span style="width:{{ (l.avis_score / 5 * 100) | round(0) }}%">★★★★★</span>★★★★★</span>
+        {% endif %}
+        <span class="pastille {{ l.statut | statut_cls }}"><i></i>{{ l.statut }}</span>
+      </div>
+    </header>
+  </article>
+  {% else %}
+  <div class="carte"><p class="vide">Aucune livraison effectuée pour l'instant.</p></div>
+  {% endfor %}
+</section>
+{% endblock %}

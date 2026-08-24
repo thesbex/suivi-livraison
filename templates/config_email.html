@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block titre %}Emails — Suivi Livraison{% endblock %}
+{% block contenu %}
+<header class="entete anim">
+  <div>
+    <h1>Emails</h1>
+    <p class="sous-titre">Modèles envoyés aux clients, configuration de l'envoi et test</p>
+  </div>
+  <div class="compteurs">
+    <div class="compteur"><strong>{{ stats_envoi.envoyes or 0 }}</strong><span>réellement envoyés</span></div>
+    <div class="compteur"><strong>{{ stats_envoi.simules or 0 }}</strong><span>simulés</span></div>
+    {% if stats_envoi.erreurs %}
+      <div class="compteur compteur-alerte"><strong>{{ stats_envoi.erreurs }}</strong><span>en erreur</span></div>
+    {% endif %}
+  </div>
+</header>
+
+<div class="deux-colonnes">
+  <div class="colonne-principale">
+
+    <div class="carte anim d1">
+      <h2>Les 4 modèles envoyés au client</h2>
+      <p class="note">Cliquez sur un modèle pour l'afficher exactement tel que le client le recevra.</p>
+      <div class="grille-modeles">
+        {% for cle, titre, description in modeles %}
+        <a class="modele" href="{{ url_for('apercu_modele', type_email=cle) }}" target="_blank" rel="noopener">
+          <span class="modele-vignette">
+            <span class="modele-bande"></span>
+            <span class="modele-ligne l1"></span>
+            <span class="modele-ligne l2"></span>
+            <span class="modele-ligne l3"></span>
+            <span class="modele-bouton"></span>
+          </span>
+          <strong>{{ titre }}</strong>
+          <small>{{ description }}</small>
+          <span class="modele-lien">Afficher l'aperçu →</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="carte anim d2">
+      <h2>Derniers emails</h2>
+      {% if derniers %}
+      <ul class="liste-mails">
+        {% for m in derniers %}
+        <li>
+          <a href="{{ url_for('voir_email', email_id=m.id) }}">{{ m.objet }}</a>
+          <small>
+            {{ m.envoye_le | dt_fr }} · à {{ m.destinataire }}
+            {% if m.code %}· <span class="mono">{{ m.code }}</span>{% endif %}
+            · <span class="etiquette-envoi e-{{ m.statut_envoi | replace('é','e') }}">{{ m.statut_envoi }}</span>
+          </small>
+          {% if m.message_erreur %}<small class="motif-erreur">{{ m.message_erreur }}</small>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="vide">Aucun email pour le moment.</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="colonne-laterale">
+    <div class="carte anim d1">
+      <h2>Configuration de l'envoi</h2>
+      {% if cfg.actif %}
+        <p class="bandeau-etat etat-ok">Envoi réel activé</p>
+        <dl class="fiche fiche-une-col">
+          <div><dt>Serveur</dt><dd class="mono">{{ cfg.hote }}:{{ cfg.port }}</dd></div>
+          <div><dt>Expéditeur</dt><dd class="mono">{{ cfg.expediteur }}</dd></div>
+          <div><dt>Authentification</dt>
+            <dd>{% if cfg.utilisateur %}<span class="mono">{{ cfg.utilisateur }}</span>
+              {{ '· mot de passe défini' if cfg.mot_de_passe_defini else '· sans mot de passe' }}
+              {% else %}aucune{% endif %}</dd></div>
+          <div><dt>Adresse du site</dt><dd class="mono">{{ cfg.base_url }}</dd></div>
+        </dl>
+      {% else %}
+        <p class="bandeau-etat etat-simule">Mode simulé</p>
+        <p class="note">Les emails sont composés et enregistrés — donc consultables ici —
+          mais ne sont pas expédiés. Pour un envoi réel, définissez les variables
+          d'environnement <code>SMTP_HOST</code>, <code>SMTP_PORT</code> et
+          <code>SMTP_FROM</code> (plus <code>SMTP_USER</code> / <code>SMTP_PASS</code>
+          si le serveur demande une authentification), puis redémarrez l'application.
+          La marche à suivre détaillée est dans <strong>DEPLOIEMENT.md</strong>.</p>
+      {% endif %}
+    </div>
+
+    <div class="carte anim d2">
+      <h2>Envoyer un email de test</h2>
+      <form method="post">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <label class="champ">Adresse de destination
+          <input type="email" name="destinataire" required
+                 value="{{ resultat.destinataire if resultat else '' }}"
+                 placeholder="votre.adresse@exemple.com"></label>
+        <button class="btn btn-plein btn-bloc" {{ 'disabled' if not cfg.actif }}>
+          Envoyer le test
+        </button>
+      </form>
+      {% if not cfg.actif %}
+        <p class="note">Le test nécessite un serveur SMTP configuré.</p>
+      {% endif %}
+      {% if resultat and resultat.erreur %}
+        <div class="bloc-erreur">
+          <strong>Motif de l'échec</strong>
+          <code>{{ resultat.erreur }}</code>
+          <small>Causes fréquentes : mot de passe d'application manquant (Gmail),
+            port incorrect (587 ou 465), ou pare-feu bloquant la sortie SMTP.</small>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion — Suivi Livraison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="ecran-connexion">
+  <div class="connexion anim">
+    <section class="connexion-panneau">
+      <div class="marque-bande"></div>
+      <h1>SUIVI<br>LIVRAISON</h1>
+      <p class="connexion-slogan">Digitalisation de la livraison des véhicules</p>
+      <ul class="connexion-points">
+        <li>Préparation &amp; affectation des livraisons</li>
+        <li>Confirmation par le convoyeur, en mobilité</li>
+        <li>Emails automatiques &amp; avis clients</li>
+      </ul>
+      <div class="connexion-route"></div>
+    </section>
+    <section class="connexion-form">
+      <h2>Connexion</h2>
+      <p class="sous-titre">Espace administrateur &amp; convoyeurs</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="flash flash-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      {% endwith %}
+      <form method="post" autocomplete="off">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <label class="champ">Identifiant
+          <input type="text" name="username" required autofocus autocapitalize="none">
+        </label>
+        <label class="champ">Mot de passe
+          <input type="password" name="password" required>
+        </label>
+        <button type="submit" class="btn btn-plein btn-large">Se connecter</button>
+      </form>
+      <div class="connexion-demo">
+        <strong>Comptes de démonstration</strong>
+        <span><code>admin</code> / <code>admin123</code> — administrateur</span>
+        <span><code>karim</code> / <code>conv123</code> — convoyeur</span>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

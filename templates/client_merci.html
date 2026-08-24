@@ -1,0 +1,16 @@
+{% extends "public_base.html" %}
+{% block titre %}Merci{% endblock %}
+{% block contenu %}
+<div class="carte carte-publique carte-merci anim d1">
+  <div class="coche">✓</div>
+  <h1>Merci pour votre retour.</h1>
+  <p class="public-intro">
+    {% if deja %}
+      Vous avez déjà donné votre avis pour cette livraison — il ne peut être déposé qu'une seule fois.
+    {% else %}
+      Votre avis a bien été enregistré. Il nous aide à améliorer la qualité de notre service.
+    {% endif %}
+  </p>
+  <p class="sourdine">À très bientôt,<br>votre agence de location.</p>
+</div>
+{% endblock %}

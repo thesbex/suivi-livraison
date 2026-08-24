@@ -1,0 +1,95 @@
+SUIVI LIVRAISON
+Application de digitalisation de la livraison des vehicules
+===========================================================
+
+1. DEMARRER
+-----------
+   Decompressez ce dossier (clic droit > Extraire tout),
+   puis double-cliquez sur  DEMARRER.bat
+
+   L'application s'ouvre dans le navigateur.
+   Aucune installation : ni Python, ni base de donnees.
+
+   Si Windows affiche "Windows a protege votre ordinateur" :
+   cliquez "Informations complementaires" > "Executer quand meme".
+   (l'application n'est simplement pas signee numeriquement)
+
+   Comptes :
+      Administrateur : admin  / admin123
+      Convoyeur      : karim  / conv123
+
+
+2. RECEVOIR LES EMAILS POUR DE VRAI  (optionnel, 2 minutes)
+-----------------------------------------------------------
+   Sans configuration, les emails sont SIMULES : ils sont
+   composes et consultables dans le menu "Emails", mais
+   ne partent pas. Tout le reste fonctionne normalement.
+
+   Pour les recevoir vraiment :
+
+   a) Creez un compte gratuit sur brevo.com
+      (300 emails/jour, sans carte bancaire)
+
+   b) Menu "SMTP & API" > onglet "SMTP" :
+        - notez le LOGIN affiche   (bXXXXXXX@smtp-brevo.com)
+        - bouton "Generate SMTP key" > copiez la CLE
+          (elle n'est affichee qu'une seule fois)
+
+   c) Menu "Senders, Domains & Dedicated IPs" > "Senders" :
+        ajoutez votre adresse email, puis cliquez le lien
+        de confirmation recu dans cette boite.
+        Sans cette validation, Brevo refuse d'envoyer.
+
+   d) Clic droit sur DEMARRER.bat > Modifier
+      Remplissez les 3 lignes tout en haut :
+
+         set "SMTP_USER=b1234567@smtp-brevo.com"
+         set "SMTP_PASS=xsmtpsib-la-cle-copiee"
+         set "SMTP_FROM=votre.adresse@gmail.com"
+
+      Enregistrez (Ctrl+S), fermez, relancez DEMARRER.bat
+
+
+3. TEST DE BOUT EN BOUT  (5 minutes)
+-------------------------------------
+   Pour verifier tout le parcours, de la reservation
+   jusqu'a l'avis client :
+
+   1. Connectez-vous en  admin / admin123
+
+   2. Menu "Emails" > saisissez VOTRE adresse
+      > "Envoyer le test"
+      -> vous devez recevoir un email de confirmation
+         (pensez a regarder les indesirables)
+
+   3. "Nouvelle livraison" : remplissez le formulaire en
+      mettant VOTRE adresse comme email du client,
+      et choisissez le convoyeur "Karim Benali".
+      -> vous recevez l'email "Votre vehicule sera livre
+         prochainement"
+
+   4. Deconnectez-vous, reconnectez-vous en karim / conv123
+      Cliquez "Livraison effectuee", validez.
+      -> vous recevez l'email "Votre vehicule a ete livre"
+         avec le bouton "Donner mon avis"
+
+   5. Cliquez ce bouton dans l'email : le formulaire de
+      satisfaction s'ouvre. Repondez aux 7 questions.
+      -> vous recevez l'email de remerciement
+
+   6. Reconnectez-vous en admin : la note apparait sur le
+      tableau de bord, dans "Avis clients" et dans les
+      "Statistiques".
+
+   Le parcours complet est alors valide.
+
+
+4. BON A SAVOIR
+---------------
+   - Les donnees sont dans le fichier suivi.db, cree a cote
+     de l'application. Chaque ordinateur a ses propres donnees.
+   - Au premier lancement, des livraisons de demonstration
+     sont incluses pour decouvrir l'outil.
+   - Pensez a changer les mots de passe (menu "Mot de passe").
+   - En cas d'echec d'envoi, le menu "Emails" affiche le
+     motif exact de l'erreur.

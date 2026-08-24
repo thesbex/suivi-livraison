@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block titre %}{{ liv.code }} — Suivi Livraison{% endblock %}
+{% block contenu %}
+<header class="entete anim">
+  <div>
+    <p class="fil"><a href="{{ url_for('dashboard') }}">Tableau de bord</a> / {{ liv.code }}</p>
+    <h1 class="avec-pastille">{{ liv.client_prenom }} {{ liv.client_nom }}
+      <span class="pastille grande {{ liv.statut | statut_cls }}"><i></i>{{ liv.statut }}</span>
+    </h1>
+    <p class="sous-titre mono">{{ liv.code }} · {{ liv.reservation_num }} · créée le {{ liv.cree_le | dt_fr }}</p>
+  </div>
+  <div class="groupe-btn">
+    {% if liv.statut in ('En attente', 'En cours') %}
+      <form method="post" action="{{ url_for('envoyer_rappel', liv_id=liv.id) }}">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <button class="btn btn-ligne">Envoyer un rappel</button>
+      </form>
+    {% endif %}
+    <a href="{{ url_for('modifier_livraison', liv_id=liv.id) }}" class="btn btn-ligne">Modifier</a>
+    <form method="post" action="{{ url_for('supprimer_livraison', liv_id=liv.id) }}"
+          data-confirm="Supprimer définitivement la livraison {{ liv.code }} ?">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button class="btn btn-danger">Supprimer</button>
+    </form>
+  </div>
+</header>
+
+<div class="deux-colonnes">
+  <div class="colonne-principale">
+
+    <div class="carte anim d1">
+      <h2>Livraison</h2>
+      <dl class="fiche">
+        <div><dt>Véhicule</dt><dd>{{ liv.vehicule }}
+          {% if liv.immatriculation %}<span class="mono plaque">{{ liv.immatriculation }}</span>
+          {% else %}<small class="sourdine">immatriculation non renseignée</small>{% endif %}</dd></div>
+        <div><dt>Date</dt><dd>{{ liv.date_livraison | date_longue }}</dd></div>
+        <div><dt>Heure prévue</dt><dd class="mono">{{ liv.heure_livraison }}</dd></div>
+        <div><dt>Heure réelle</dt><dd class="mono">
+          {% if liv.heure_reelle %}{{ liv.heure_reelle }}
+            {% set r = retard_minutes(liv) %}
+            {% if r is not none and r > SEUIL_RETARD %}<span class="retard">retard +{{ r }} min</span>
+            {% elif r is not none %}<span class="ok">à l'heure</span>{% endif %}
+          {% else %}—{% endif %}</dd></div>
+        <div class="pleine"><dt>Lieu</dt><dd>{{ liv.lieu_livraison }}</dd></div>
+        {% if liv.commentaire_convoyeur %}
+          <div class="pleine"><dt>Commentaire convoyeur</dt><dd>{{ liv.commentaire_convoyeur }}</dd></div>
+        {% endif %}
+      </dl>
+    </div>
+
+    <div class="carte anim d2">
+      <h2>Retour</h2>
+      <dl class="fiche">
+        <div><dt>Date</dt><dd>{{ liv.date_retour | date_longue }}</dd></div>
+        <div><dt>Heure</dt><dd class="mono">{{ liv.heure_retour }}</dd></div>
+        <div class="pleine"><dt>Lieu</dt><dd>{{ liv.lieu_retour }}</dd></div>
+      </dl>
+    </div>
+
+    <div class="carte anim d2">
+      <h2>Contacts</h2>
+      <dl class="fiche">
+        <div><dt>Client</dt><dd>{{ liv.client_prenom }} {{ liv.client_nom }}<br>
+          <span class="mono">{{ liv.client_tel }}</span><br><span class="sourdine">{{ liv.client_email }}</span></dd></div>
+        <div><dt>Convoyeur</dt><dd>
+          {% if liv.convoyeur_nom %}{{ liv.convoyeur_nom }}<br><span class="mono">{{ liv.convoyeur_tel }}</span>
+          {% else %}<span class="non-affecte">Non affecté</span><br>
+            <a href="{{ url_for('modifier_livraison', liv_id=liv.id) }}" class="lien-action">Désigner un convoyeur</a>
+          {% endif %}</dd></div>
+        <div><dt>Pays de départ</dt><dd>{{ liv.pays_depart or '—' }}</dd></div>
+      </dl>
+    </div>
+
+    <div class="carte anim d3">
+      <h2>Liens client sécurisés <small class="sourdine">(expirent le {{ liv.token_expire_le | dt_fr }})</small></h2>
+      <div class="lien-copie">
+        <span>Suivi</span>
+        <code>{{ request.url_root.rstrip('/') }}{{ url_for('suivi_client', token=liv.token) }}</code>
+        <button type="button" class="btn btn-mini" data-copier="{{ request.url_root.rstrip('/') }}{{ url_for('suivi_client', token=liv.token) }}">Copier</button>
+      </div>
+      <div class="lien-copie">
+        <span>Avis</span>
+        <code>{{ request.url_root.rstrip('/') }}{{ url_for('avis_client', token=liv.token) }}</code>
+        <button type="button" class="btn btn-mini" data-copier="{{ request.url_root.rstrip('/') }}{{ url_for('avis_client', token=liv.token) }}">Copier</button>
+      </div>
+    </div>
+
+    {% if avis %}
+    <div class="carte carte-avis anim d3">
+      <h2>Avis client <span class="note-globale">{{ avis.score }}<small>/5</small></span></h2>
+      <ul class="detail-avis">
+        <li><span>Livré à l'heure</span><strong class="{{ 'ok' if avis.q1_a_lheure else 'retard' }}">{{ 'Oui' if avis.q1_a_lheure else 'Non' }}</strong></li>
+        {% for label, note in [("État du véhicule", avis.q2_etat), ("Professionnalisme de l'agent", avis.q3_professionnalisme),
+                               ("Propreté", avis.q4_proprete), ("Conformité à la réservation", avis.q5_conformite),
+                               ("Recommandation", avis.q6_recommandation)] %}
+        <li><span>{{ label }}</span>
+          <span class="etoiles-aff"><span style="width:{{ note * 20 }}%">★★★★★</span>★★★★★</span></li>
+        {% endfor %}
+      </ul>
+      {% if avis.commentaire %}<blockquote>« {{ avis.commentaire }} »</blockquote>{% endif %}
+      <p class="sourdine">Reçu le {{ avis.cree_le | dt_fr }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="colonne-laterale">
+    <div class="carte anim d1">
+      <h2>Parcours</h2>
+      <ol class="parcours">
+        {% for s in STATUTS %}
+          <li class="{{ 'fait' if loop.index0 < etape else ('actuel' if loop.index0 == etape else '') }}">
+            <i></i>{{ s }}
+          </li>
+        {% endfor %}
+      </ol>
+    </div>
+
+    <div class="carte anim d2">
+      <h2>Emails envoyés <small class="sourdine">({{ mails | length }})</small></h2>
+      {% if mails %}
+      <ul class="liste-mails">
+        {% for m in mails %}
+        <li>
+          <a href="{{ url_for('voir_email', email_id=m.id) }}">{{ m.objet }}</a>
+          <small>{{ m.envoye_le | dt_fr }} · <span class="etiquette-envoi e-{{ m.statut_envoi | replace('é','e') }}">{{ m.statut_envoi }}</span></small>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="sourdine">Aucun email pour le moment.</p>{% endif %}
+    </div>
+
+    <div class="carte anim d3">
+      <h2>Historique</h2>
+      <ul class="journal">
+        {% for h in historique | reverse %}
+        <li>
+          <strong>{{ h.action }}</strong>
+          {% if h.details %}<span>{{ h.details }}</span>{% endif %}
+          <small>{{ h.cree_le | dt_fr }} · {{ h.utilisateur }}</small>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

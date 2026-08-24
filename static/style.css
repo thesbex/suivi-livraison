@@ -1,0 +1,1071 @@
+/* ============================================================
+   SUIVI LIVRAISON — système de design
+   Esthétique « signalétique routière premium » : encre profonde,
+   papier chaud, orange signal, bandes obliques, mono pour les codes.
+   ============================================================ */
+
+:root {
+  --papier: #F5F2EB;
+  --carte: #FFFFFF;
+  --encre: #131A26;
+  --encre-2: #1D2736;
+  --texte: #2A3342;
+  --texte-2: #5C6572;
+  --sourdine: #8A8F98;
+  --ligne: #E6E0D2;
+  --ligne-2: #EFEBE1;
+
+  --accent: #E85D1F;
+  --accent-fonce: #C44A12;
+  --accent-pale: #FBEADF;
+
+  --attente: #B77E0B;   --attente-pale: #F7EED4;
+  --cours: #2563EB;     --cours-pale: #E3EAFB;
+  --livree: #1F7A4D;    --livree-pale: #DFF0E6;
+  --avis: #8B44AD;      --avis-pale: #F0E4F6;
+  --danger: #C03221;    --danger-pale: #F8E3E0;
+  --neutre: #6E7684;    --neutre-pale: #ECEAE3;
+  --etoile: #E8960C;
+  --etoile-vide: #DAD4C6;
+
+  --sans: 'Archivo', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', Consolas, monospace;
+  --rayon: 12px;
+  --ombre: 0 1px 2px rgba(19, 26, 38, .05), 0 6px 20px rgba(19, 26, 38, .06);
+  --bande: repeating-linear-gradient(-45deg, var(--accent) 0 12px, var(--encre) 12px 24px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--texte);
+  background: var(--papier);
+  line-height: 1.55;
+}
+
+/* --------------------------------------------------------- */
+/* Animations d'entrée                                        */
+/* --------------------------------------------------------- */
+@keyframes fondu-haut {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.anim { animation: fondu-haut .5s cubic-bezier(.2, .7, .3, 1) backwards; }
+.d1 { animation-delay: .06s; }
+.d2 { animation-delay: .13s; }
+.d3 { animation-delay: .2s; }
+.d4 { animation-delay: .27s; }
+@media (prefers-reduced-motion: reduce) {
+  .anim { animation: none; }
+}
+
+/* --------------------------------------------------------- */
+/* Structure application : barre latérale + contenu           */
+/* --------------------------------------------------------- */
+body.app { display: flex; min-height: 100vh; }
+
+.lateral {
+  width: 232px;
+  flex-shrink: 0;
+  background: var(--encre);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.marque { padding: 0 22px 20px; }
+.marque-bande { height: 6px; background: var(--bande); margin: 0 -22px 20px; }
+.marque-nom {
+  padding: 6px 0;
+  font-weight: 900;
+  font-size: 19px;
+  letter-spacing: 3px;
+  line-height: 1.15;
+  color: #fff;
+  text-decoration: none;
+  display: block;
+}
+.marque-sous {
+  display: block;
+  margin-top: 5px;
+  font-size: 10.5px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #8E99AB;
+}
+.menu { flex: 1; padding: 6px 12px; display: flex; flex-direction: column; gap: 2px; }
+.menu a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #B9C2D0;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13.5px;
+  transition: background .15s, color .15s;
+}
+.menu a svg {
+  width: 17px; height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+}
+.menu a:hover { background: var(--encre-2); color: #fff; }
+.menu a.actif {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(232, 93, 31, .35);
+}
+.lateral-pied { padding: 14px 16px 18px; border-top: 1px solid rgba(255, 255, 255, .09); }
+.utilisateur { display: flex; gap: 10px; align-items: center; }
+.utilisateur-avatar {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  text-transform: uppercase;
+}
+.utilisateur strong { display: block; font-size: 13px; color: #fff; line-height: 1.2; }
+.utilisateur small { color: #8E99AB; font-size: 11px; }
+/* Les deux actions sont alignées sur la même ligne : le bouton étant dans un
+   <form>, il créait sa propre ligne de texte et retombait plus bas que le lien. */
+.lateral-actions { display: flex; align-items: center; gap: 16px; margin-top: 2px; }
+.lateral-actions form { display: flex; align-items: center; }
+.lateral-actions a, .lateral-actions button {
+  background: none;
+  border: none;
+  color: #8E99AB;
+  font: 600 11.5px var(--sans);
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  /* Zone cliquable confortable au doigt : le texte seul ne faisait que 12 px. */
+  padding: 12px 0;
+  transition: color .15s;
+}
+.lateral-actions a:hover, .lateral-actions button:hover { color: #fff; }
+.lateral-actions button { color: #C08B6E; }
+.lateral-actions button:hover { color: var(--accent); }
+
+.contenu { flex: 1; padding: 30px 36px 60px; max-width: 1280px; }
+
+/* --------------------------------------------------------- */
+/* En-têtes de page                                           */
+/* --------------------------------------------------------- */
+.entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+h1 {
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -.4px;
+  color: var(--encre);
+}
+h1.avec-pastille { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+h2 { font-size: 16px; font-weight: 800; color: var(--encre); margin-bottom: 12px; letter-spacing: -.2px; }
+.sous-titre { color: var(--texte-2); font-size: 13.5px; margin-top: 3px; }
+.fil { font-size: 12px; color: var(--sourdine); margin-bottom: 4px; }
+.fil a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.titre-section {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--texte-2);
+  margin: 26px 0 10px;
+}
+.groupe-btn { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* --------------------------------------------------------- */
+/* Boutons                                                    */
+/* --------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font: 700 13.5px var(--sans);
+  padding: 9px 16px;
+  border-radius: 9px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform .12s, box-shadow .12s, background .15s, color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.btn:active { transform: translateY(1px); }
+.btn-plein {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 5px 16px rgba(232, 93, 31, .3);
+}
+.btn-plein:hover { background: var(--accent-fonce); }
+.btn-encre { background: var(--encre); color: #fff; }
+.btn-encre:hover { background: var(--encre-2); }
+.btn-ligne { background: var(--carte); border-color: var(--ligne); color: var(--encre); }
+.btn-ligne:hover { border-color: var(--accent); color: var(--accent); }
+.btn-fantome { background: transparent; color: var(--texte-2); }
+.btn-fantome:hover { color: var(--encre); }
+.btn-danger { background: transparent; border-color: transparent; color: var(--danger); }
+.btn-danger:hover { background: var(--danger-pale); }
+.btn-large { padding: 12px 26px; font-size: 15px; }
+.btn-bloc { width: 100%; }
+.btn-mini { padding: 8px 12px; font-size: 12px; border-radius: 7px; background: var(--neutre-pale); color: var(--encre); }
+.btn-mini:hover { background: var(--ligne); }
+
+/* --------------------------------------------------------- */
+/* Cartes                                                     */
+/* --------------------------------------------------------- */
+.carte {
+  background: var(--carte);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.carte-tableau { padding: 6px 0 0; overflow: hidden; }
+.carte-etroite { max-width: 430px; }
+.vide { color: var(--sourdine); text-align: center; padding: 26px 10px; font-size: 14px; }
+.note { font-size: 12.5px; color: var(--texte-2); margin-top: 10px; }
+.note a { color: var(--accent); font-weight: 600; }
+
+/* --------------------------------------------------------- */
+/* Compteurs & filtres du tableau de bord                     */
+/* --------------------------------------------------------- */
+.compteurs { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.compteur {
+  background: var(--carte);
+  border: 1px solid var(--ligne);
+  border-radius: 10px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+.compteur strong { font-size: 22px; font-weight: 900; color: var(--encre); }
+.compteur span { font-size: 12.5px; color: var(--texte-2); }
+a.compteur { text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+a.compteur:hover { border-color: var(--accent); box-shadow: var(--ombre); }
+.compteur-alerte { border-color: #E9C9A8; background: #FDF6EF; }
+.compteur-alerte strong { color: var(--accent-fonce); }
+
+/* Livraison sans convoyeur désigné */
+.non-affecte {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--attente);
+  background: var(--attente-pale);
+  border-radius: 6px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.filtres { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.filtres input[type="search"] {
+  flex: 1;
+  min-width: 220px;
+}
+.filtres input, .filtres select {
+  font: 500 13.5px var(--sans);
+  color: var(--texte);
+  background: var(--carte);
+  border: 1.5px solid var(--ligne);
+  border-radius: 9px;
+  padding: 9px 12px;
+  outline: none;
+}
+.filtres input:focus, .filtres select:focus { border-color: var(--accent); }
+
+/* --------------------------------------------------------- */
+/* Tableau                                                    */
+/* --------------------------------------------------------- */
+.defile-x { overflow-x: auto; }
+.tableau { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tableau th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--sourdine);
+  font-weight: 700;
+  padding: 12px 14px 10px;
+  border-bottom: 1.5px solid var(--ligne);
+  white-space: nowrap;
+}
+.tableau td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--ligne-2);
+  vertical-align: middle;
+}
+.tableau tbody tr:last-child td { border-bottom: none; }
+.tableau tbody tr[data-href] { cursor: pointer; transition: background .12s; }
+.tableau tbody tr[data-href]:hover { background: #FBF9F4; }
+.tableau td small { display: block; font-size: 11.5px; margin-top: 1px; }
+.nowrap { white-space: nowrap; }
+
+.mono { font-family: var(--mono); font-size: .92em; }
+.fort { font-weight: 700; color: var(--encre); }
+.sourdine { color: var(--sourdine); }
+.retard { color: var(--danger); font-weight: 700; }
+.ok { color: var(--livree); font-weight: 700; }
+.plaque {
+  background: var(--neutre-pale);
+  border: 1px solid var(--ligne);
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.bulle { cursor: help; font-size: 16px; }
+
+/* --------------------------------------------------------- */
+/* Pastilles de statut                                        */
+/* --------------------------------------------------------- */
+.pastille {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.pastille i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pastille.grande { font-size: 13px; padding: 6px 14px; }
+.st-neutre  { background: var(--neutre-pale);  color: var(--neutre); }
+.st-attente { background: var(--attente-pale); color: var(--attente); }
+.st-cours   { background: var(--cours-pale);   color: var(--cours); }
+.st-livree  { background: var(--livree-pale);  color: var(--livree); }
+.st-avis    { background: var(--avis-pale);    color: var(--avis); }
+.st-fini    { background: var(--encre);        color: #fff; }
+.st-retard  { background: var(--danger-pale);  color: var(--danger); }
+.st-cours i { animation: pulsation 1.6s ease-in-out infinite; }
+@keyframes pulsation {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, .45); }
+  50% { box-shadow: 0 0 0 5px rgba(37, 99, 235, 0); }
+}
+
+/* --------------------------------------------------------- */
+/* Étoiles (affichage)                                        */
+/* --------------------------------------------------------- */
+.etoiles-aff {
+  position: relative;
+  display: inline-block;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--etoile-vide);
+  letter-spacing: 1.5px;
+  vertical-align: middle;
+}
+.etoiles-aff > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--etoile);
+}
+.etoiles-aff.grande { font-size: 19px; }
+.etoile-seule { font-style: normal; color: var(--etoile); }
+
+/* --------------------------------------------------------- */
+/* Messages flash                                             */
+/* --------------------------------------------------------- */
+.flashs { position: sticky; top: 12px; z-index: 50; margin-bottom: 14px; }
+.flash {
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13.5px;
+  margin-bottom: 8px;
+  border: 1px solid;
+  box-shadow: var(--ombre);
+  animation: fondu-haut .35s ease backwards;
+}
+.flash-succes { background: var(--livree-pale); color: var(--livree); border-color: #BFE0CD; }
+.flash-erreur { background: var(--danger-pale); color: var(--danger); border-color: #EBC2BB; }
+.flash-info   { background: var(--cours-pale);  color: var(--cours);  border-color: #C3D4F6; }
+
+/* --------------------------------------------------------- */
+/* Formulaires                                                */
+/* --------------------------------------------------------- */
+.champ {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--texte-2);
+  margin-bottom: 13px;
+}
+.champ input, .champ select, .champ textarea, .zone-texte {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  font: 500 14.5px var(--sans);
+  color: var(--encre);
+  background: var(--carte);
+  border: 1.5px solid var(--ligne);
+  border-radius: 9px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.champ input:focus, .champ select:focus, .champ textarea:focus, .zone-texte:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-pale);
+}
+.champ textarea, .zone-texte { resize: vertical; }
+[hidden] { display: none !important; }
+
+/* Mention « facultatif » à côté d'un libellé de champ */
+.facultatif {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: var(--sourdine);
+  background: var(--neutre-pale);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 5px;
+  vertical-align: 1px;
+}
+legend .facultatif { vertical-align: 2px; }
+
+/* Saisie libre révélée par l'option « Autre » d'une liste */
+.champ-libre { margin-top: 7px; animation: fondu-haut .25s ease; }
+.champ-libre input { margin-top: 0; }
+.sortie { display: block; margin-top: 10px; font-size: 15px; color: var(--encre); font-weight: 600; }
+.grille-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.grille-form fieldset { border: 1px solid var(--ligne); margin-bottom: 0; }
+/* Le titre de section est rendu comme un bloc normal à l'intérieur de la carte :
+   un <legend> par défaut découpe la bordure du fieldset, ce qui laissait un
+   trait interrompu et un texte débordant au-dessus du cadre. */
+.grille-form legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 15px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.grille-form legend + * { clear: left; }
+.pleine-largeur { grid-column: 1 / -1; }
+.deux-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.barre-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------- */
+/* Mise en page à deux colonnes                               */
+/* --------------------------------------------------------- */
+.deux-colonnes { display: grid; grid-template-columns: 1.55fr 1fr; gap: 0 18px; align-items: start; }
+.deux-colonnes.egales { grid-template-columns: 1fr 1fr; }
+
+/* Fiches (listes de définitions) */
+.fiche { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+.fiche > div.pleine { grid-column: 1 / -1; }
+.fiche dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sourdine);
+  margin-bottom: 2px;
+}
+.fiche dd { font-size: 14.5px; color: var(--encre); font-weight: 500; }
+/* Numéros de téléphone et liens d'action : cibles tactiles confortables,
+   ils sont beaucoup utilisés depuis un mobile par les convoyeurs. */
+.fiche dd a, .mission-client a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-block;
+  padding: 7px 0;
+}
+.lien-action { font-size: 12.5px; }
+.fil a, .modele-lien, .liste-mails a, .note a { display: inline-block; padding: 8px 0; }
+
+/* Liens sécurisés à copier */
+.lien-copie {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--ligne);
+}
+.lien-copie:last-child { border-bottom: none; }
+.lien-copie span { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--texte-2); width: 46px; flex-shrink: 0; }
+.lien-copie code {
+  flex: 1;
+  font: 12px var(--mono);
+  color: var(--texte);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------- */
+/* Parcours (états de la livraison)                           */
+/* --------------------------------------------------------- */
+.parcours { list-style: none; position: relative; }
+.parcours li {
+  position: relative;
+  padding: 0 0 18px 26px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--sourdine);
+}
+.parcours li:last-child { padding-bottom: 0; }
+.parcours li::before {
+  content: '';
+  position: absolute;
+  left: 6.5px;
+  top: 16px;
+  bottom: -2px;
+  border-left: 2px dashed var(--ligne);
+}
+.parcours li:last-child::before { display: none; }
+.parcours li.fait::before { border-left: 2px solid var(--encre); }
+.parcours li i {
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--carte);
+  border: 2px solid var(--ligne);
+}
+.parcours li.fait { color: var(--encre); }
+.parcours li.fait i { background: var(--encre); border-color: var(--encre); }
+.parcours li.actuel { color: var(--accent); font-weight: 800; }
+.parcours li.actuel i {
+  border-color: var(--accent);
+  background: var(--accent);
+  animation: pulsation-accent 1.6s ease-in-out infinite;
+}
+@keyframes pulsation-accent {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 93, 31, .4); }
+  50% { box-shadow: 0 0 0 6px rgba(232, 93, 31, 0); }
+}
+
+/* --------------------------------------------------------- */
+/* Historique & emails                                        */
+/* --------------------------------------------------------- */
+.journal { list-style: none; }
+.journal li { padding: 9px 0; border-bottom: 1px solid var(--ligne-2); }
+.journal li:last-child { border-bottom: none; }
+.journal strong { display: block; font-size: 13px; color: var(--encre); }
+.journal span { display: block; font-size: 12.5px; color: var(--texte-2); }
+.journal small { display: block; font-size: 11px; color: var(--sourdine); margin-top: 2px; }
+
+.liste-mails { list-style: none; }
+.liste-mails li { padding: 9px 0; border-bottom: 1px solid var(--ligne-2); }
+.liste-mails li:last-child { border-bottom: none; }
+.liste-mails a { font-weight: 700; font-size: 13.5px; color: var(--encre); text-decoration: none; }
+.liste-mails a:hover { color: var(--accent); }
+.liste-mails small { display: block; color: var(--sourdine); font-size: 11.5px; margin-top: 2px; }
+.etiquette-envoi { font-weight: 700; padding: 1px 7px; border-radius: 5px; }
+.e-simule { background: var(--neutre-pale); color: var(--neutre); }
+.e-envoye { background: var(--livree-pale); color: var(--livree); }
+.e-erreur { background: var(--danger-pale); color: var(--danger); }
+
+/* --------------------------------------------------------- */
+/* Avis                                                       */
+/* --------------------------------------------------------- */
+.liste-avis { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.carte-avis header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.carte-avis header small { display: block; margin-top: 2px; }
+.note-globale {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--encre);
+  line-height: 1;
+}
+.note-globale small { font-size: 13px; color: var(--sourdine); font-weight: 700; }
+.ligne-notes { display: flex; align-items: center; gap: 10px; margin: 10px 0 4px; flex-wrap: wrap; }
+.carte-avis blockquote {
+  margin: 10px 0 6px;
+  padding: 10px 14px;
+  background: var(--papier);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  font-size: 13.5px;
+  color: var(--texte);
+  font-style: italic;
+}
+.carte-avis footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 10px; flex-wrap: wrap; }
+.detail-avis { list-style: none; margin-top: 4px; }
+.detail-avis li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--ligne);
+  font-size: 13.5px;
+}
+.detail-avis li:last-child { border-bottom: none; }
+
+/* --------------------------------------------------------- */
+/* Statistiques                                               */
+/* --------------------------------------------------------- */
+.tuiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.tuile {
+  background: var(--carte);
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  padding: 15px 17px;
+}
+.tuile small {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sourdine);
+  margin-bottom: 5px;
+}
+.tuile strong { font-size: 30px; font-weight: 900; color: var(--encre); letter-spacing: -.5px; line-height: 1.1; }
+.tuile strong em { font-style: normal; font-size: 14px; color: var(--sourdine); margin-left: 3px; font-weight: 700; }
+.tuile span { display: block; font-size: 12px; color: var(--texte-2); margin-top: 3px; }
+.tuile-accent { border-top: 4px solid var(--accent); }
+.chiffre-retard { color: var(--danger) !important; }
+.chiffre-attente { color: var(--attente) !important; }
+
+.classement { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.classement li { display: flex; gap: 12px; align-items: flex-start; }
+.rang {
+  width: 26px; height: 26px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--neutre-pale);
+  color: var(--texte-2);
+  font-weight: 800;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  margin-top: 1px;
+}
+.rang.podium { background: var(--encre); color: #fff; }
+.classement li:first-child .rang.podium { background: var(--accent); }
+.classement-corps { flex: 1; min-width: 0; }
+.classement-ligne { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.classement-ligne strong { font-size: 14px; color: var(--encre); }
+.valeur { font: 700 13px var(--mono); color: var(--encre); }
+
+.barre-fond {
+  height: 10px;
+  background: var(--ligne-2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.barre {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 0 4px 4px 0;
+  min-width: 2px;
+  transition: width .6s cubic-bezier(.2, .7, .3, 1);
+}
+.histogramme { display: flex; flex-direction: column; gap: 11px; margin-top: 14px; }
+.histo-ligne { display: grid; grid-template-columns: 44px 1fr 30px; gap: 10px; align-items: center; }
+.histo-label { font-size: 13px; font-weight: 700; color: var(--encre); white-space: nowrap; }
+.histo-ligne .valeur { text-align: right; }
+
+/* --------------------------------------------------------- */
+/* Espace convoyeur (mobile d'abord)                          */
+/* --------------------------------------------------------- */
+.carte-mission { padding: 16px 18px; }
+.carte-mission header { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.carte-mission header strong { font-size: 15.5px; color: var(--encre); margin-right: 6px; }
+.heure-mission {
+  display: inline-block;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--texte-2);
+  margin-right: 8px;
+}
+.mission-encours { border-left: 4px solid var(--cours); }
+.mission-lieu { margin-top: 7px; font-size: 13.5px; color: var(--texte); }
+.mission-client { font-size: 13px; color: var(--texte-2); margin-top: 2px; }
+.mission-client a { color: var(--accent); text-decoration: none; font-weight: 700; }
+.mission-actions { display: flex; gap: 10px; margin-top: 13px; flex-wrap: wrap; align-items: flex-start; }
+.carte-mission.compacte { padding: 12px 16px; }
+.carte-mission.compacte header { align-items: center; }
+
+.confirmation { flex: 1; min-width: 240px; }
+.confirmation summary {
+  list-style: none;
+  user-select: none;
+}
+.confirmation summary::-webkit-details-marker { display: none; }
+.confirmation[open] summary { border-radius: 9px 9px 0 0; }
+.form-confirmation {
+  border: 1.5px solid var(--accent);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 14px 14px 16px;
+  background: #FFF9F5;
+}
+
+/* --------------------------------------------------------- */
+/* Pages publiques (client)                                   */
+/* --------------------------------------------------------- */
+body.public { padding: 26px 14px 40px; }
+.public-colonne { max-width: 620px; margin: 0 auto; }
+.public-entete { text-align: center; margin-bottom: 20px; }
+.public-entete .marque-bande { border-radius: 3px; max-width: 190px; margin: 0 auto 14px; }
+.public-marque {
+  display: block;
+  font-weight: 900;
+  font-size: 17px;
+  letter-spacing: 4px;
+  color: var(--encre);
+}
+.public-sous {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--sourdine);
+  margin-top: 3px;
+}
+.public-pied { text-align: center; font-size: 11.5px; color: var(--sourdine); margin-top: 26px; }
+.carte-publique { padding: 24px 26px; }
+.carte-publique h1 { font-size: 22px; margin-bottom: 6px; }
+.public-intro { color: var(--texte-2); font-size: 14.5px; }
+.public-intro strong { color: var(--encre); }
+.carte-publique .parcours { margin-top: 18px; }
+.carte-cta { text-align: center; border-top: 4px solid var(--accent); }
+.carte-cta p { color: var(--texte-2); margin: 4px 0 14px; }
+.carte-merci { text-align: center; padding: 40px 28px; }
+.coche {
+  width: 62px; height: 62px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: var(--livree);
+  color: #fff;
+  font-size: 30px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 24px rgba(31, 122, 77, .35);
+}
+.coche-gris { background: var(--neutre); box-shadow: none; font-size: 24px; }
+
+/* Formulaire d'avis */
+.question h3 {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--encre);
+  margin-bottom: 14px;
+}
+.num-q {
+  width: 26px; height: 26px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--encre);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.segments { display: flex; gap: 10px; }
+.segments label { flex: 1; cursor: pointer; }
+.segments input { position: absolute; opacity: 0; }
+.segments span {
+  display: block;
+  text-align: center;
+  padding: 11px;
+  border: 1.5px solid var(--ligne);
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--texte-2);
+  transition: all .15s;
+}
+.segments input:checked + span {
+  border-color: var(--accent);
+  background: var(--accent-pale);
+  color: var(--accent-fonce);
+}
+.segments input:focus-visible + span { box-shadow: 0 0 0 3px var(--accent-pale); }
+
+.notation { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.etoiles { display: inline-flex; flex-direction: row-reverse; }
+.etoiles input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.etoiles label {
+  font-size: 37px;
+  line-height: 1;
+  padding: 0 3px;
+  color: var(--etoile-vide);
+  cursor: pointer;
+  transition: transform .12s, color .1s;
+}
+.etoiles label:hover { transform: scale(1.15); }
+.etoiles label:hover,
+.etoiles label:hover ~ label,
+.etoiles input:checked ~ label { color: var(--etoile); }
+.etoiles input:focus-visible ~ label { text-shadow: 0 0 0 3px var(--accent-pale); }
+.libelle-note { font-size: 13.5px; font-weight: 700; color: var(--texte-2); min-width: 80px; }
+.formulaire-avis .btn-bloc { margin-top: 4px; }
+
+/* --------------------------------------------------------- */
+/* Écran de connexion                                         */
+/* --------------------------------------------------------- */
+body.ecran-connexion {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(1000px 500px at 85% -10%, rgba(232, 93, 31, .07), transparent 60%),
+    var(--papier);
+}
+.connexion {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  width: min(860px, 100%);
+  background: var(--carte);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(19, 26, 38, .18);
+  border: 1px solid var(--ligne);
+}
+.connexion-panneau {
+  background: var(--encre);
+  color: #fff;
+  padding: 0 40px 40px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.connexion-panneau .marque-bande { margin: 0 -40px 44px; }
+.connexion-panneau h1 {
+  color: #fff;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  line-height: 1.2;
+}
+.connexion-slogan { color: #B9C2D0; margin-top: 12px; font-size: 14.5px; max-width: 30ch; }
+.connexion-points { list-style: none; margin-top: 30px; display: flex; flex-direction: column; gap: 12px; }
+.connexion-points li {
+  position: relative;
+  padding-left: 24px;
+  font-size: 13.5px;
+  color: #D4DAE4;
+}
+.connexion-points li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 5px;
+  width: 9px; height: 9px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+.connexion-route {
+  margin-top: auto;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, #3A4658 0 26px, transparent 26px 44px);
+  border-radius: 2px;
+}
+.connexion-form { padding: 46px 44px 36px; }
+.connexion-form h2 { font-size: 23px; margin-bottom: 2px; }
+.connexion-form .sous-titre { margin-bottom: 22px; }
+.connexion-form .btn { width: 100%; margin-top: 6px; }
+.connexion-demo {
+  margin-top: 26px;
+  padding: 13px 15px;
+  background: var(--papier);
+  border: 1px dashed var(--ligne);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--texte-2);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.connexion-demo strong { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--sourdine); }
+.connexion-demo code { font-family: var(--mono); color: var(--encre); font-weight: 600; }
+
+/* --------------------------------------------------------- */
+/* Aperçu email                                               */
+/* --------------------------------------------------------- */
+.carte-email { padding: 0; overflow: hidden; }
+.carte-email iframe { display: block; width: 100%; height: 640px; border: none; background: var(--papier); }
+
+/* Page « Emails » : modèles, état SMTP, test */
+.grille-modeles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.modele {
+  display: block;
+  padding: 13px;
+  border: 1.5px solid var(--ligne);
+  border-radius: 10px;
+  text-decoration: none;
+  background: var(--carte);
+  transition: border-color .15s, transform .15s, box-shadow .15s;
+}
+.modele:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--ombre); }
+.modele strong { display: block; font-size: 13.5px; color: var(--encre); margin-bottom: 3px; }
+.modele small { display: block; font-size: 11.5px; color: var(--texte-2); line-height: 1.45; }
+.modele-lien { display: block; margin-top: 8px; font-size: 11.5px; font-weight: 700; color: var(--accent); }
+.modele-vignette {
+  display: block;
+  background: var(--papier);
+  border: 1px solid var(--ligne-2);
+  border-radius: 6px;
+  padding: 9px;
+  margin-bottom: 10px;
+}
+.modele-bande { display: block; height: 4px; border-radius: 2px; background: var(--bande); margin-bottom: 7px; }
+.modele-ligne { display: block; height: 5px; border-radius: 3px; background: var(--ligne); margin-bottom: 4px; }
+.modele-ligne.l1 { width: 70%; background: var(--encre); opacity: .55; }
+.modele-ligne.l2 { width: 100%; }
+.modele-ligne.l3 { width: 84%; }
+.modele-bouton {
+  display: block; width: 52%; height: 9px; border-radius: 3px;
+  background: var(--accent); margin: 8px auto 1px;
+}
+
+.bandeau-etat {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.etat-ok { background: var(--livree-pale); color: var(--livree); }
+.etat-simule { background: var(--neutre-pale); color: var(--neutre); }
+.fiche-une-col { grid-template-columns: 1fr; }
+.motif-erreur {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--danger);
+  background: var(--danger-pale);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-top: 5px;
+  word-break: break-word;
+}
+.bloc-erreur {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--danger-pale);
+  border: 1px solid #EBC2BB;
+  border-radius: 10px;
+}
+.bloc-erreur strong { display: block; font-size: 12px; color: var(--danger); margin-bottom: 5px; }
+.bloc-erreur code {
+  display: block;
+  font-size: 11.5px;
+  color: var(--encre);
+  word-break: break-word;
+  margin-bottom: 7px;
+}
+.bloc-erreur small { font-size: 11.5px; color: var(--texte-2); line-height: 1.5; }
+.note code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  background: var(--neutre-pale);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* --------------------------------------------------------- */
+/* Réactif                                                    */
+/* --------------------------------------------------------- */
+@media (max-width: 1020px) {
+  body.app { flex-direction: column; }
+  .lateral {
+    width: 100%; height: auto; position: relative;
+    flex-direction: row; align-items: center; flex-wrap: wrap;
+    padding: 12px 0 10px;
+  }
+  .marque { padding: 0 16px 0 18px; }
+  /* La bande occupe toute la largeur sans déborder : positionnée sur la barre,
+     et non étirée par une marge négative en -100vw (qui provoquait un
+     défilement horizontal de 175 px sur tous les écrans mobiles). */
+  .marque-bande {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    margin: 0;
+  }
+  .marque-nom { font-size: 14px; letter-spacing: 2px; }
+  .marque-nom br { display: none; }
+  .marque-sous { display: none; }
+  .menu { flex-direction: row; padding: 8px 10px; flex-wrap: wrap; }
+  .menu a { padding: 8px 11px; font-size: 12.5px; }
+  .lateral-pied { border-top: none; margin-left: auto; padding: 8px 16px; }
+  .utilisateur strong { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .contenu { padding: 20px 16px 50px; }
+  .deux-colonnes, .deux-colonnes.egales { grid-template-columns: 1fr; }
+  /* Sans min-width, une colonne de grille refuse de rétrécir sous la largeur
+     de son contenu le plus long (URL des liens sécurisés, immatriculations…)
+     et pousse la page hors de l'écran. */
+  .deux-colonnes > *, .grille-form > *, .liste-avis > * { min-width: 0; }
+  .grille-form { grid-template-columns: 1fr; }
+  .liste-avis { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .connexion { grid-template-columns: 1fr; }
+  .connexion-panneau { padding: 0 28px 26px; }
+  .connexion-panneau .marque-bande { margin: 0 -28px 26px; }
+  .connexion-panneau h1 { font-size: 24px; }
+  .connexion-form { padding: 28px 26px; }
+  .deux-cols { grid-template-columns: 1fr; }
+  .fiche { grid-template-columns: 1fr; }
+  .entete { align-items: flex-start; flex-direction: column; }
+  h1 { font-size: 22px; }
+  .tuile strong { font-size: 25px; }
+  .etoiles label { font-size: 42px; padding: 0 5px; }
+}

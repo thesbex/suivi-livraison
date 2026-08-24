@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block titre %}Convoyeurs — Suivi Livraison{% endblock %}
+{% block contenu %}
+<header class="entete anim">
+  <div>
+    <h1>Convoyeurs</h1>
+    <p class="sous-titre">Comptes des convoyeurs et qualité de service individuelle</p>
+  </div>
+</header>
+
+<div class="deux-colonnes">
+  <div class="colonne-principale">
+    <div class="carte carte-tableau anim d1">
+      <div class="defile-x">
+      <table class="tableau">
+        <thead>
+          <tr><th>Convoyeur</th><th>Identifiant</th><th>Téléphone</th>
+              <th>Livraisons</th><th>Note moyenne</th><th>Compte</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for c in convoyeurs %}
+          <tr>
+            <td class="fort">{{ c.nom }}</td>
+            <td class="mono">{{ c.username }}</td>
+            <td class="mono">{{ c.telephone or '—' }}</td>
+            <td>{{ c.nb_livraisons }}</td>
+            <td>
+              {% if c.note is not none %}
+                <span class="etoiles-aff"><span style="width:{{ (c.note / 5 * 100) | round(0) }}%">★★★★★</span>★★★★★</span>
+                <small class="fort">{{ c.note | round(2) }}</small>
+              {% else %}<span class="sourdine">—</span>{% endif %}
+            </td>
+            <td><span class="pastille {{ 'st-livree' if c.actif else 'st-neutre' }}"><i></i>{{ 'Actif' if c.actif else 'Désactivé' }}</span></td>
+            <td>
+              <form method="post" data-confirm="{{ 'Désactiver' if c.actif else 'Réactiver' }} le compte de {{ c.nom }} ?">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                <input type="hidden" name="action" value="basculer">
+                <input type="hidden" name="uid" value="{{ c.id }}">
+                <button class="btn btn-mini">{{ 'Désactiver' if c.actif else 'Réactiver' }}</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="vide">Aucun convoyeur — créez le premier compte ci-contre.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="colonne-laterale">
+    <div class="carte anim d2">
+      <h2>Nouveau convoyeur</h2>
+      <form method="post">
+        <input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="action" value="creer">
+        <label class="champ">Nom complet<input name="nom" required></label>
+        <label class="champ">Identifiant de connexion<input name="username" required autocapitalize="none"></label>
+        <label class="champ">Téléphone<input name="telephone" placeholder="+212 6 XX XX XX XX"></label>
+        <label class="champ">Mot de passe <small class="sourdine">(6 caractères min.)</small>
+          <input type="password" name="password" required minlength="6"></label>
+        <button class="btn btn-plein">Créer le compte</button>
+      </form>
+      <p class="note">Le convoyeur se connecte avec ces identifiants pour consulter ses livraisons
+        et les confirmer depuis son téléphone.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

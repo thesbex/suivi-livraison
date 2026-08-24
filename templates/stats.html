@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block titre %}Statistiques — Suivi Livraison{% endblock %}
+{% block contenu %}
+<header class="entete anim">
+  <div>
+    <h1>Statistiques</h1>
+    <p class="sous-titre">Qualité de service, ponctualité et satisfaction client</p>
+  </div>
+</header>
+
+<div class="tuiles anim d1">
+  <div class="tuile"><small>Livraisons</small><strong>{{ t.nb_livraisons }}</strong><span>dont {{ t.nb_livrees }} effectuée{{ 's' if t.nb_livrees > 1 }}</span></div>
+  <div class="tuile"><small>Retards</small><strong class="{{ 'chiffre-retard' if t.nb_retards else '' }}">{{ t.nb_retards }}</strong><span>au-delà de {{ SEUIL_RETARD }} min</span></div>
+  <div class="tuile"><small>Écart moyen de livraison</small>
+    <strong>{% if t.ecart_moyen is not none %}{{ '%+d' | format(t.ecart_moyen) }}<em>min</em>{% else %}—{% endif %}</strong>
+    <span>heure réelle vs heure prévue</span></div>
+  <div class="tuile tuile-accent"><small>Note moyenne</small>
+    <strong>{% if t.note_moyenne is not none %}{{ t.note_moyenne }}<em>/5</em>{% else %}—{% endif %}</strong>
+    {% if t.note_moyenne is not none %}
+    <span class="etoiles-aff"><span style="width:{{ (t.note_moyenne / 5 * 100) | round(0) }}%">★★★★★</span>★★★★★</span>
+    {% else %}<span>en attente d'avis</span>{% endif %}</div>
+  <div class="tuile"><small>Avis reçus</small><strong>{{ t.nb_avis }}</strong>
+    <span>{% if t.taux_reponse is not none %}taux de réponse {{ t.taux_reponse }} %{% else %}—{% endif %}</span></div>
+  <div class="tuile"><small>Clients satisfaits</small><strong>{{ t.nb_satisfaits }}</strong><span>note ≥ 4/5</span></div>
+  <div class="tuile"><small>Sans convoyeur</small>
+    <strong class="{{ 'chiffre-attente' if t.non_affectees }}">{{ t.non_affectees }}</strong>
+    <span>livraisons à affecter</span></div>
+</div>
+
+<div class="deux-colonnes egales">
+  <div class="carte anim d2">
+    <h2>Classement des convoyeurs</h2>
+    <p class="note">Note moyenne des avis clients — les trois premiers forment le « top convoyeurs ».</p>
+    <ol class="classement">
+      {% for c in convoyeurs %}
+      <li>
+        <span class="rang {{ 'podium' if loop.index <= 3 and c.note is not none }}">{{ loop.index }}</span>
+        <div class="classement-corps">
+          <div class="classement-ligne">
+            <strong>{{ c.nom }}</strong>
+            <span class="valeur">{{ c.note if c.note is not none else '—' }}</span>
+          </div>
+          <div class="barre-fond" title="{{ c.nom }} : {{ c.note if c.note is not none else 'aucun avis' }}/5">
+            <div class="barre" style="width:{{ (c.note / 5 * 100) | round(0) if c.note is not none else 0 }}%"></div>
+          </div>
+          <small class="sourdine">{{ c.nb }} livraison{{ 's' if c.nb > 1 }} effectuée{{ 's' if c.nb > 1 }}
+            {% if c.ponctualite is not none %} · {{ c.ponctualite }} % à l'heure{% endif %}</small>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+
+  <div class="carte anim d3">
+    <h2>Répartition des notes</h2>
+    <p class="note">Nombre d'avis par note globale (arrondie).</p>
+    <div class="histogramme">
+      {% for n in [5, 4, 3, 2, 1] %}
+      <div class="histo-ligne" title="{{ distribution[n] }} avis à {{ n }}/5">
+        <span class="histo-label">{{ n }} <i class="etoile-seule">★</i></span>
+        <div class="barre-fond">
+          <div class="barre" style="width:{{ (distribution[n] / max_distrib * 100) | round(0) }}%"></div>
+        </div>
+        <span class="valeur">{{ distribution[n] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% if t.nb_avis == 0 %}<p class="vide">Aucun avis pour le moment.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}
