@@ -163,9 +163,24 @@ def statut_cls(statut):
     }.get(statut, "st-neutre")
 
 
+def _trouver_logo():
+    """Cherche un logo dans static/ : dès qu'un fichier logo.* y est déposé,
+    il remplace la marque textuelle sur toutes les pages et dans les emails."""
+    dossier = app.static_folder or os.path.join(BASE_DIR, "static")
+    for ext in ("svg", "png", "webp", "jpg", "jpeg"):
+        if os.path.exists(os.path.join(dossier, f"logo.{ext}")):
+            return f"logo.{ext}"
+    return None
+
+
+LOGO = _trouver_logo()
+
+
 @app.context_processor
 def inject_globals():
     return {
+        "LOGO": LOGO,
+        "MARQUE": os.environ.get("MARQUE", "BABA Car"),
         "STATUTS": STATUTS,
         "csrf": session.get("csrf", ""),
         "aujourdhui": datetime.now().strftime("%Y-%m-%d"),

@@ -33,6 +33,35 @@ def date_longue(iso):
         return iso or ""
 
 
+def _logo_disponible():
+    """Nom du fichier logo s'il a été déposé dans static/, sinon None."""
+    dossier = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+    for ext in ("png", "webp", "jpg", "jpeg", "svg"):
+        if os.path.exists(os.path.join(dossier, f"logo.{ext}")):
+            return f"logo.{ext}"
+    return None
+
+
+def _entete_marque():
+    """En-tête des emails : le logo de l'agence s'il existe, sinon le nom.
+
+    L'image est référencée en URL absolue (BASE_URL) : un client mail ne sait
+    pas résoudre un chemin relatif. Le texte reste en repli si les images
+    sont bloquées, ce que font beaucoup de messageries par défaut.
+    """
+    logo = _logo_disponible()
+    marque = os.environ.get("MARQUE", "BABA Car")
+    if logo and not logo.endswith(".svg"):   # les clients mail ignorent le SVG
+        return (f'<img src="{BASE_URL}/static/{logo}" alt="{marque}" width="150" '
+                f'style="display:block;background:#ffffff;border-radius:8px;'
+                f'padding:8px 10px;max-width:150px;height:auto;">')
+    return (f'<span style="font-family:Arial,Helvetica,sans-serif;font-size:15px;'
+            f'font-weight:bold;letter-spacing:3px;color:#ffffff;">{marque.upper()}</span>'
+            f'<span style="font-family:Arial,Helvetica,sans-serif;font-size:11px;'
+            f'letter-spacing:1px;color:#9aa4b5;display:block;padding-top:2px;">'
+            f'AGENCE DE LOCATION DE VÉHICULES</span>')
+
+
 def _gabarit(titre, contenu, bouton=None):
     """Gabarit HTML commun, compatible clients mail (tables + styles en ligne)."""
     bloc_bouton = ""
@@ -52,10 +81,7 @@ def _gabarit(titre, contenu, bouton=None):
        style="background:#ffffff;border-radius:10px;overflow:hidden;max-width:560px;width:100%;">
   <tr><td style="height:6px;background:repeating-linear-gradient(45deg,{ACCENT},{ACCENT} 14px,{ENCRE} 14px,{ENCRE} 28px);font-size:0;line-height:0;">&nbsp;</td></tr>
   <tr><td style="background:{ENCRE};padding:22px 40px;">
-    <span style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;
-                 letter-spacing:3px;color:#ffffff;">SUIVI&nbsp;LIVRAISON</span>
-    <span style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:1px;
-                 color:#9aa4b5;display:block;padding-top:2px;">AGENCE DE LOCATION DE VÉHICULES</span>
+    {_entete_marque()}
   </td></tr>
   <tr><td style="padding:36px 40px 8px 40px;font-family:Georgia,'Times New Roman',serif;
                  font-size:22px;color:{ENCRE};font-weight:bold;">{titre}</td></tr>

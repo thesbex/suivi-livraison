@@ -13,7 +13,11 @@
   <div class="connexion anim">
     <section class="connexion-panneau">
       <div class="marque-bande"></div>
-      <h1>SUIVI<br>LIVRAISON</h1>
+      {% if LOGO %}
+        <img class="connexion-logo" src="{{ url_for('static', filename=LOGO) }}" alt="{{ MARQUE }}">
+      {% else %}
+        <h1>SUIVI<br>LIVRAISON</h1>
+      {% endif %}
       <p class="connexion-slogan">Digitalisation de la livraison des véhicules</p>
       <ul class="connexion-points">
         <li>Préparation &amp; affectation des livraisons</li>

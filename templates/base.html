@@ -14,8 +14,14 @@
   <aside class="lateral">
     <div class="marque">
       <div class="marque-bande"></div>
-      <a href="{{ url_for('accueil') }}" class="marque-nom">SUIVI<br>LIVRAISON</a>
-      <span class="marque-sous">Agence de location</span>
+      {% if LOGO %}
+        <a href="{{ url_for('accueil') }}" class="marque-logo">
+          <img src="{{ url_for('static', filename=LOGO) }}" alt="{{ MARQUE }}">
+        </a>
+      {% else %}
+        <a href="{{ url_for('accueil') }}" class="marque-nom">SUIVI<br>LIVRAISON</a>
+      {% endif %}
+      <span class="marque-sous">Suivi des livraisons</span>
     </div>
     <nav class="menu">
       {% if session.role == 'admin' %}
