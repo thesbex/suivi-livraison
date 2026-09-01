@@ -494,6 +494,42 @@ def config_email():
                            derniers=derniers, stats_envoi=stats_envoi)
 
 
+@app.route("/admin/diagnostic-reseau")
+@role_requis("admin")
+def diagnostic_reseau():
+    """Teste depuis le serveur quels ports sortants sont reellement ouverts.
+
+    Beaucoup d'hebergeurs ferment les ports SMTP pour empecher l'envoi de
+    spam. Cette page dit lesquels passent, sans transmettre d'identifiants :
+    elle se contente d'ouvrir puis de refermer une connexion.
+    """
+    import socket
+    cibles = [
+        ("Serveur mail de l'agence", "mail.babacar.ma", 465, "SMTP SSL"),
+        ("Serveur mail de l'agence", "mail.babacar.ma", 587, "SMTP STARTTLS"),
+        ("Serveur mail de l'agence", "mail.babacar.ma", 25, "SMTP simple"),
+        ("Brevo", "smtp-relay.brevo.com", 587, "SMTP STARTTLS"),
+        ("Brevo", "smtp-relay.brevo.com", 2525, "SMTP alternatif"),
+        ("Brevo", "api.brevo.com", 443, "API HTTPS"),
+    ]
+    resultats = []
+    for nom, hote, port, genre in cibles:
+        debut = datetime.now()
+        try:
+            with socket.create_connection((hote, port), timeout=8):
+                etat, detail = "ouvert", ""
+        except socket.timeout:
+            etat, detail = "bloque", "delai depasse — port filtre par l'hebergeur"
+        except Exception as e:
+            etat, detail = "erreur", type(e).__name__
+        resultats.append({
+            "nom": nom, "hote": hote, "port": port, "genre": genre,
+            "etat": etat, "detail": detail,
+            "duree": round((datetime.now() - debut).total_seconds(), 1),
+        })
+    return render_template("diagnostic.html", resultats=resultats)
+
+
 @app.route("/admin/emails/modele/<type_email>")
 @role_requis("admin")
 def apercu_modele(type_email):

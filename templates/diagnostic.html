@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titre %}Diagnostic réseau — Suivi Livraison{% endblock %}
+{% block contenu %}
+<header class="entete anim">
+  <div>
+    <h1>Diagnostic réseau</h1>
+    <p class="sous-titre">Ports sortants réellement accessibles depuis le serveur d'hébergement</p>
+  </div>
+</header>
+
+<div class="carte carte-tableau anim d1">
+  <div class="defile-x">
+  <table class="tableau">
+    <thead><tr><th>Service</th><th>Hôte</th><th>Port</th><th>Type</th><th>État</th><th>Détail</th></tr></thead>
+    <tbody>
+      {% for r in resultats %}
+      <tr>
+        <td class="fort">{{ r.nom }}</td>
+        <td class="mono">{{ r.hote }}</td>
+        <td class="mono">{{ r.port }}</td>
+        <td>{{ r.genre }}</td>
+        <td>
+          <span class="pastille {{ 'st-livree' if r.etat == 'ouvert' else 'st-retard' }}">
+            <i></i>{{ r.etat }}</span>
+          <small class="sourdine">{{ r.duree }} s</small>
+        </td>
+        <td><small class="sourdine">{{ r.detail or '—' }}</small></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<p class="note anim d2">Un port « bloqué » l'est par l'hébergeur, pas par le serveur distant :
+  aucune donnée n'est transmise, la connexion est ouverte puis refermée aussitôt.</p>
+{% endblock %}
