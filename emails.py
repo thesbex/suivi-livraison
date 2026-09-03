@@ -52,11 +52,18 @@ def _entete_marque():
     logo = _logo_disponible()
     marque = os.environ.get("MARQUE", "BABA Car")
     if logo and not logo.endswith(".svg"):   # les clients mail ignorent le SVG
-        # Le logo est centré et occupe toute la largeur du cadre d'en-tête.
-        # « width » en attribut : Outlook ignore les largeurs en CSS seul.
-        return (f'<img src="{BASE_URL}/static/{logo}" alt="{marque}" width="300" '
-                f'style="display:block;margin:0 auto;width:100%;max-width:300px;'
-                f'height:auto;border:0;outline:none;text-decoration:none;">')
+        # Centrage par table imbriquée avec align="center" : Gmail mobile
+        # supprime « margin:0 auto » sur les images tout en gardant
+        # « display:block », ce qui les renvoie à gauche. Un attribut HTML
+        # align est respecté par tous les clients, y compris Gmail et Outlook.
+        return (
+            '<table role="presentation" border="0" cellpadding="0" cellspacing="0"'
+            ' align="center" style="margin:0 auto;"><tr>'
+            '<td align="center" style="text-align:center;line-height:0;font-size:0;">'
+            f'<img src="{BASE_URL}/static/{logo}" alt="{marque}" width="260" '
+            f'style="display:block;width:260px;max-width:100%;height:auto;'
+            f'border:0;outline:none;text-decoration:none;">'
+            '</td></tr></table>')
     return (f'<span style="font-family:Arial,Helvetica,sans-serif;font-size:20px;'
             f'font-weight:bold;letter-spacing:3px;color:{ENCRE};">{marque.upper()}</span>'
             f'<span style="font-family:Arial,Helvetica,sans-serif;font-size:11px;'
@@ -82,7 +89,7 @@ def _gabarit(titre, contenu, bouton=None):
 <table role="presentation" width="560" cellpadding="0" cellspacing="0"
        style="background:#ffffff;border-radius:10px;overflow:hidden;max-width:560px;width:100%;">
   <tr><td style="height:6px;background:repeating-linear-gradient(45deg,{ACCENT},{ACCENT} 14px,{ENCRE} 14px,{ENCRE} 28px);font-size:0;line-height:0;">&nbsp;</td></tr>
-  <tr><td align="center" style="background:#ffffff;padding:26px 30px 22px 30px;
+  <tr><td align="center" style="background:#ffffff;padding:24px 20px 20px 20px;
                                 border-bottom:1px solid #eee9df;text-align:center;">
     {_entete_marque()}
   </td></tr>
@@ -105,7 +112,7 @@ def _tableau_infos(lignes):
     tr = "".join(
         f"""<tr>
         <td style="padding:9px 14px;background:{PAPIER};font-family:Arial,sans-serif;font-size:13px;
-            color:#6b7280;white-space:nowrap;border-bottom:2px solid #ffffff;">{k}</td>
+            color:#6b7280;border-bottom:2px solid #ffffff;width:42%;">{k}</td>
         <td style="padding:9px 14px;background:{PAPIER};font-family:Arial,sans-serif;font-size:14px;
             color:{ENCRE};font-weight:bold;border-bottom:2px solid #ffffff;">{v}</td></tr>"""
         for k, v in lignes if v
