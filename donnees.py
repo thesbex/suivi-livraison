@@ -95,6 +95,7 @@ FONCTIONS = [
     "Convoyeur",
     "Gérant",
     "Responsable d'agence",
+    "Responsable d'exploitation",
     "Collaborateur",
     "Chauffeur",
     "Agent de comptoir",
