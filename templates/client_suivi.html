@@ -32,11 +32,13 @@
     <div><dt>Heure</dt><dd class="mono">{{ liv.heure_livraison }}</dd></div>
     <div class="pleine"><dt>Lieu</dt><dd>{{ liv.lieu_livraison }}</dd></div>
     {% if liv.convoyeur_nom %}
-      <div><dt>Convoyeur</dt><dd>{{ liv.convoyeur_nom }}</dd></div>
+      <div class="pleine"><dt>Votre interlocuteur pour la livraison</dt>
+        <dd>{{ liv.convoyeur_nom }}{% if liv.convoyeur_fonction %}
+          <small class="sourdine">— {{ liv.convoyeur_fonction }}</small>{% endif %}</dd></div>
       <div><dt>Téléphone</dt><dd><a class="mono" href="tel:{{ liv.convoyeur_tel | replace(' ', '') }}">{{ liv.convoyeur_tel }}</a></dd></div>
     {% else %}
-      <div class="pleine"><dt>Convoyeur</dt>
-        <dd class="sourdine">Les coordonnées de votre convoyeur vous seront communiquées prochainement.</dd></div>
+      <div class="pleine"><dt>Votre interlocuteur pour la livraison</dt>
+        <dd class="sourdine">Ses coordonnées vous seront communiquées prochainement.</dd></div>
     {% endif %}
   </dl>
 </div>

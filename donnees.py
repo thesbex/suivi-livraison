@@ -87,3 +87,17 @@ PAYS = [
     "Oman", "Jordanie", "Liban", "Chine", "Japon", "Corée du Sud", "Inde",
     "Australie", "Afrique du Sud",
 ]
+
+
+# Fonctions possibles de la personne qui effectue la livraison.
+# La liste est indicative : le formulaire accepte aussi une saisie libre.
+FONCTIONS = [
+    "Convoyeur",
+    "Gérant",
+    "Responsable d'agence",
+    "Collaborateur",
+    "Chauffeur",
+    "Agent de comptoir",
+    "Prestataire externe",
+]
+FONCTION_PAR_DEFAUT = "Convoyeur"

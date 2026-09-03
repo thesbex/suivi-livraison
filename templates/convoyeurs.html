@@ -14,13 +14,29 @@
       <div class="defile-x">
       <table class="tableau">
         <thead>
-          <tr><th>Convoyeur</th><th>Identifiant</th><th>Téléphone</th>
+          <tr><th>Intervenant</th><th>Fonction</th><th>Identifiant</th><th>Téléphone</th>
               <th>Livraisons</th><th>Note moyenne</th><th>Compte</th><th></th></tr>
         </thead>
         <tbody>
           {% for c in convoyeurs %}
           <tr>
             <td class="fort">{{ c.nom }}</td>
+            <td>
+              <form method="post" class="form-fonction">
+                <input type="hidden" name="_csrf" value="{{ csrf }}">
+                <input type="hidden" name="action" value="fonction">
+                <input type="hidden" name="uid" value="{{ c.id }}">
+                <select name="fonction" data-autosubmit aria-label="Fonction de {{ c.nom }}">
+                  {% set actuelle = c.fonction or 'Convoyeur' %}
+                  {% for f in FONCTIONS %}
+                    <option value="{{ f }}" {{ 'selected' if actuelle == f }}>{{ f }}</option>
+                  {% endfor %}
+                  {% if actuelle not in FONCTIONS %}
+                    <option value="{{ actuelle }}" selected>{{ actuelle }}</option>
+                  {% endif %}
+                </select>
+              </form>
+            </td>
             <td class="mono">{{ c.username }}</td>
             <td class="mono">{{ c.telephone or '—' }}</td>
             <td>{{ c.nb_livraisons }}</td>
@@ -41,7 +57,7 @@
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="7" class="vide">Aucun convoyeur — créez le premier compte ci-contre.</td></tr>
+          <tr><td colspan="8" class="vide">Aucun intervenant — créez le premier compte ci-contre.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -51,19 +67,26 @@
 
   <div class="colonne-laterale">
     <div class="carte anim d2">
-      <h2>Nouveau convoyeur</h2>
+      <h2>Nouvel intervenant</h2>
       <form method="post">
         <input type="hidden" name="_csrf" value="{{ csrf }}">
         <input type="hidden" name="action" value="creer">
         <label class="champ">Nom complet<input name="nom" required></label>
+        <label class="champ">Fonction
+          <select name="fonction">
+            {% for f in FONCTIONS %}
+              <option value="{{ f }}">{{ f }}</option>
+            {% endfor %}
+          </select></label>
         <label class="champ">Identifiant de connexion<input name="username" required autocapitalize="none"></label>
         <label class="champ">Téléphone<input name="telephone" placeholder="+212 6 XX XX XX XX"></label>
         <label class="champ">Mot de passe <small class="sourdine">(6 caractères min.)</small>
           <input type="password" name="password" required minlength="6"></label>
         <button class="btn btn-plein">Créer le compte</button>
       </form>
-      <p class="note">Le convoyeur se connecte avec ces identifiants pour consulter ses livraisons
-        et les confirmer depuis son téléphone.</p>
+      <p class="note">L'intervenant se connecte avec ces identifiants pour consulter ses
+        livraisons et les confirmer depuis son téléphone. Sa fonction apparaît dans l'email
+        envoyé au client, sous le libellé « Votre interlocuteur pour la livraison ».</p>
     </div>
   </div>
 </div>

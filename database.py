@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
     role TEXT NOT NULL CHECK (role IN ('admin', 'convoyeur')),
     nom TEXT NOT NULL,
     telephone TEXT DEFAULT '',
+    fonction TEXT DEFAULT 'Convoyeur',      -- rôle de l'intervenant qui livre
     actif INTEGER NOT NULL DEFAULT 1
 );
 
@@ -169,6 +170,13 @@ def migrer(db):
     if not POSTGRES:
         _reparer_references(db)
 
+    colonnes_users = db.colonnes("users")
+    if colonnes_users and "fonction" not in colonnes_users:
+        db.execute("ALTER TABLE users ADD COLUMN fonction TEXT DEFAULT 'Convoyeur'")
+        db.execute("UPDATE users SET fonction = 'Convoyeur'"
+                   " WHERE role = 'convoyeur' AND (fonction IS NULL OR fonction = '')")
+        print("Base migrée : la fonction de l'intervenant est disponible.")
+
     colonnes_emails = db.colonnes("emails")
     if colonnes_emails and "message_erreur" not in colonnes_emails:
         db.execute("ALTER TABLE emails ADD COLUMN message_erreur TEXT DEFAULT ''")
@@ -239,16 +247,16 @@ def _seed(db):
     import emails as mailer  # import local pour éviter un cycle au chargement
 
     convoyeurs = [
-        ("karim", "Karim Benali", "+212 6 61 22 33 44"),
-        ("yassine", "Yassine Mouline", "+212 6 62 55 66 77"),
-        ("sofia", "Sofia Alami", "+212 6 63 88 99 00"),
+        ("karim", "Karim Benali", "+212 6 61 22 33 44", "Convoyeur"),
+        ("yassine", "Yassine Mouline", "+212 6 62 55 66 77", "Responsable d'agence"),
+        ("sofia", "Sofia Alami", "+212 6 63 88 99 00", "Gérant"),
     ]
     ids = {}
-    for username, nom, tel in convoyeurs:
+    for username, nom, tel, fonction in convoyeurs:
         ids[username] = db.inserer(
-            "INSERT INTO users (username, password_hash, role, nom, telephone)"
-            " VALUES (?, ?, 'convoyeur', ?, ?)",
-            (username, generate_password_hash("conv123"), nom, tel),
+            "INSERT INTO users (username, password_hash, role, nom, telephone, fonction)"
+            " VALUES (?, ?, 'convoyeur', ?, ?, ?)",
+            (username, generate_password_hash("conv123"), nom, tel, fonction),
         )
 
     # (jours, heure, client, véhicule, immat, lieu livraison, retour+lieu, convoyeur,
@@ -371,7 +379,7 @@ def _decale(heure, minutes):
 
 
 def convoyeurs_par_username(convoyeurs):
-    return {u: (n, t) for u, n, t in convoyeurs}
+    return {u: (n, t) for u, n, t, *_ in convoyeurs}
 
 
 if __name__ == "__main__":

@@ -52,13 +52,15 @@ def _entete_marque():
     logo = _logo_disponible()
     marque = os.environ.get("MARQUE", "BABA Car")
     if logo and not logo.endswith(".svg"):   # les clients mail ignorent le SVG
-        return (f'<img src="{BASE_URL}/static/{logo}" alt="{marque}" width="150" '
-                f'style="display:block;background:#ffffff;border-radius:8px;'
-                f'padding:8px 10px;max-width:150px;height:auto;">')
-    return (f'<span style="font-family:Arial,Helvetica,sans-serif;font-size:15px;'
-            f'font-weight:bold;letter-spacing:3px;color:#ffffff;">{marque.upper()}</span>'
+        # Le logo est centré et occupe toute la largeur du cadre d'en-tête.
+        # « width » en attribut : Outlook ignore les largeurs en CSS seul.
+        return (f'<img src="{BASE_URL}/static/{logo}" alt="{marque}" width="300" '
+                f'style="display:block;margin:0 auto;width:100%;max-width:300px;'
+                f'height:auto;border:0;outline:none;text-decoration:none;">')
+    return (f'<span style="font-family:Arial,Helvetica,sans-serif;font-size:20px;'
+            f'font-weight:bold;letter-spacing:3px;color:{ENCRE};">{marque.upper()}</span>'
             f'<span style="font-family:Arial,Helvetica,sans-serif;font-size:11px;'
-            f'letter-spacing:1px;color:#9aa4b5;display:block;padding-top:2px;">'
+            f'letter-spacing:1px;color:#6b7280;display:block;padding-top:4px;">'
             f'AGENCE DE LOCATION DE VÉHICULES</span>')
 
 
@@ -80,7 +82,8 @@ def _gabarit(titre, contenu, bouton=None):
 <table role="presentation" width="560" cellpadding="0" cellspacing="0"
        style="background:#ffffff;border-radius:10px;overflow:hidden;max-width:560px;width:100%;">
   <tr><td style="height:6px;background:repeating-linear-gradient(45deg,{ACCENT},{ACCENT} 14px,{ENCRE} 14px,{ENCRE} 28px);font-size:0;line-height:0;">&nbsp;</td></tr>
-  <tr><td style="background:{ENCRE};padding:22px 40px;">
+  <tr><td align="center" style="background:#ffffff;padding:26px 30px 22px 30px;
+                                border-bottom:1px solid #eee9df;text-align:center;">
     {_entete_marque()}
   </td></tr>
   <tr><td style="padding:36px 40px 8px 40px;font-family:Georgia,'Times New Roman',serif;
@@ -111,10 +114,26 @@ def _tableau_infos(lignes):
                style="margin:18px 0 6px 0;border-radius:8px;overflow:hidden;">{tr}</table>"""
 
 
+LIBELLE_INTERLOCUTEUR = "Votre interlocuteur pour la livraison"
+
 _MENTION_CONVOYEUR = (
-    "<p style='color:#6b7280;font-size:13.5px;'>Les coordonnées de votre convoyeur "
-    "vous seront communiquées avant la livraison.</p>"
+    "<p style='color:#6b7280;font-size:13.5px;'>Les coordonnées de votre "
+    "interlocuteur vous seront communiquées avant la livraison.</p>"
 )
+
+
+def _interlocuteur(liv):
+    """Nom de la personne qui livre, suivi de sa fonction quand elle est connue.
+
+    Le libellé côté client est « Votre interlocuteur pour la livraison » : la
+    livraison n'est pas toujours faite par un convoyeur, ce peut être le gérant,
+    un responsable d'agence ou un collaborateur.
+    """
+    nom = liv.get("convoyeur_nom")
+    if not nom:
+        return None
+    fonction = (liv.get("convoyeur_fonction") or "").strip()
+    return f"{nom} — {fonction}" if fonction else nom
 
 
 def _vehicule(liv):
@@ -139,7 +158,7 @@ def composer(type_email, liv):
                 ("Heure", liv["heure_livraison"]),
                 ("Lieu", liv["lieu_livraison"]),
                 ("Véhicule", _vehicule(liv)),
-                ("Convoyeur", liv.get("convoyeur_nom")),
+                (LIBELLE_INTERLOCUTEUR, _interlocuteur(liv)),
                 ("Téléphone", liv.get("convoyeur_tel")),
             ])
             + (_MENTION_CONVOYEUR if not liv.get("convoyeur_nom") else "")
@@ -157,7 +176,7 @@ def composer(type_email, liv):
                 ("Date", date_longue(liv["date_livraison"])),
                 ("Heure", liv["heure_livraison"]),
                 ("Lieu", liv["lieu_livraison"]),
-                ("Convoyeur", liv.get("convoyeur_nom")),
+                (LIBELLE_INTERLOCUTEUR, _interlocuteur(liv)),
                 ("Téléphone", liv.get("convoyeur_tel")),
             ])
             + (_MENTION_CONVOYEUR if not liv.get("convoyeur_nom") else "")
@@ -176,7 +195,7 @@ def composer(type_email, liv):
                 ("Lieu", liv["lieu_livraison"]),
                 ("Date", date_longue(liv["date_livraison"])),
                 ("Heure", liv.get("heure_reelle") or liv["heure_livraison"]),
-                ("Convoyeur", liv.get("convoyeur_nom")),
+                (LIBELLE_INTERLOCUTEUR, _interlocuteur(liv)),
             ])
             + "<p>Votre avis compte : il ne vous faudra qu'une minute pour évaluer votre livraison.</p>"
         )
@@ -219,6 +238,7 @@ EXEMPLE_LIVRAISON = {
     "heure_reelle": "09:55",
     "lieu_livraison": "Aéroport Marrakech Ménara (RAK)",
     "convoyeur_nom": "Karim Benali", "convoyeur_tel": "+212 6 61 22 33 44",
+    "convoyeur_fonction": "Responsable d'agence",
     "token": "apercu-modele-exemple",
 }
 

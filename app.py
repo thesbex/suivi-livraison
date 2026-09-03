@@ -18,7 +18,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import emails as mailer
 from bd import BASE_DIR, DB_PATH, POSTGRES, description_cible, get_db
 from database import init_db, nouveau_code, nouveau_token
-from donnees import LIEUX, PAYS, TOUS_LES_LIEUX
+from donnees import FONCTION_PAR_DEFAUT, FONCTIONS, LIEUX, PAYS, TOUS_LES_LIEUX
 
 # Clé de signature des sessions.
 # En production, elle vient de la variable d'environnement SECRET_KEY : le
@@ -93,6 +93,7 @@ def changer_statut(liv_id, statut, utilisateur="système"):
 def charger_livraison(liv_id=None, token=None):
     """Livraison + convoyeur + avis, sous forme de dict (ou None)."""
     q = """SELECT l.*, u.nom AS convoyeur_nom, u.telephone AS convoyeur_tel,
+                  u.fonction AS convoyeur_fonction,
                   a.score AS avis_score, a.commentaire AS avis_commentaire, a.id AS avis_id
            FROM livraisons l
            LEFT JOIN users u ON u.id = l.convoyeur_id
@@ -189,6 +190,7 @@ def inject_globals():
         "LIEUX": LIEUX,
         "TOUS_LES_LIEUX": TOUS_LES_LIEUX,
         "PAYS": PAYS,
+        "FONCTIONS": FONCTIONS,
     }
 
 
@@ -274,7 +276,8 @@ def accueil():
 # ---------------------------------------------------------------------------
 
 def _requete_livraisons(filtres):
-    sql = """SELECT l.*, u.nom AS convoyeur_nom, a.score AS avis_score,
+    sql = """SELECT l.*, u.nom AS convoyeur_nom, u.fonction AS convoyeur_fonction,
+                    a.score AS avis_score,
                     a.commentaire AS avis_commentaire
              FROM livraisons l
              LEFT JOIN users u ON u.id = l.convoyeur_id
@@ -340,7 +343,8 @@ def _lire_formulaire():
 @role_requis("admin")
 def nouvelle_livraison():
     convoyeurs = db().execute(
-        "SELECT id, nom, telephone FROM users WHERE role = 'convoyeur' AND actif = 1 ORDER BY nom").fetchall()
+        "SELECT id, nom, telephone, fonction FROM users"
+        " WHERE role = 'convoyeur' AND actif = 1 ORDER BY nom").fetchall()
     donnees = {}
     if request.method == "POST":
         donnees, erreurs = _lire_formulaire()
@@ -405,7 +409,8 @@ def modifier_livraison(liv_id):
     if not liv:
         abort(404)
     convoyeurs = db().execute(
-        "SELECT id, nom, telephone FROM users WHERE role = 'convoyeur' AND actif = 1 ORDER BY nom").fetchall()
+        "SELECT id, nom, telephone, fonction FROM users"
+        " WHERE role = 'convoyeur' AND actif = 1 ORDER BY nom").fetchall()
     if request.method == "POST":
         donnees, erreurs = _lire_formulaire()
         if erreurs:
@@ -644,12 +649,22 @@ def gestion_convoyeurs():
                 flash("Cet identifiant existe déjà.", "erreur")
             else:
                 db().execute(
-                    "INSERT INTO users (username, password_hash, role, nom, telephone)"
-                    " VALUES (?, ?, 'convoyeur', ?, ?)",
+                    "INSERT INTO users (username, password_hash, role, nom, telephone, fonction)"
+                    " VALUES (?, ?, 'convoyeur', ?, ?, ?)",
                     (username, generate_password_hash(mdp), nom,
-                     request.form.get("telephone", "").strip()))
+                     request.form.get("telephone", "").strip(),
+                     request.form.get("fonction", "").strip() or FONCTION_PAR_DEFAUT))
                 db().commit()
                 flash(f"Convoyeur {nom} créé.", "succes")
+        elif action == "fonction":
+            uid = request.form.get("uid")
+            fonction = request.form.get("fonction", "").strip() or FONCTION_PAR_DEFAUT
+            u = db().execute("SELECT * FROM users WHERE id = ? AND role = 'convoyeur'",
+                             (uid,)).fetchone()
+            if u:
+                db().execute("UPDATE users SET fonction = ? WHERE id = ?", (fonction, uid))
+                db().commit()
+                flash(f"{u['nom']} est désormais « {fonction} ».", "succes")
         elif action == "basculer":
             uid = request.form.get("uid")
             u = db().execute("SELECT * FROM users WHERE id = ? AND role = 'convoyeur'", (uid,)).fetchone()

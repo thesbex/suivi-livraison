@@ -101,24 +101,24 @@
     </fieldset>
 
     <fieldset class="carte pleine-largeur">
-      <legend>Convoyeur <small class="facultatif">facultatif</small></legend>
+      <legend>Intervenant <small class="facultatif">facultatif</small></legend>
       <div class="deux-cols">
-        <label class="champ">Nom du convoyeur
+        <label class="champ">Personne chargée de la livraison
           <select name="convoyeur_id" id="choix-convoyeur">
             <option value="" {{ 'selected' if not livraison.convoyeur_id }}>Non affecté — à désigner plus tard</option>
             {% for c in convoyeurs %}
               <option value="{{ c.id }}" data-tel="{{ c.telephone }}"
-                {{ 'selected' if livraison.convoyeur_id|string == c.id|string }}>{{ c.nom }}</option>
+                {{ 'selected' if livraison.convoyeur_id|string == c.id|string }}>{{ c.nom }}{% if c.fonction %} — {{ c.fonction }}{% endif %}</option>
             {% endfor %}
           </select></label>
         <div class="champ">Téléphone
           <output id="tel-convoyeur" class="sortie mono">—</output>
         </div>
       </div>
-      <p class="note">Une livraison peut être enregistrée sans convoyeur : elle apparaîtra comme
-        <strong>non affectée</strong> sur le tableau de bord, et le convoyeur pourra être désigné plus tard.
-        Une fois désigné, son nom et son téléphone sont transmis au client.
-        <a href="{{ url_for('gestion_convoyeurs') }}">Gérer les convoyeurs</a></p>
+      <p class="note">Une livraison peut être enregistrée sans intervenant : elle apparaîtra comme
+        <strong>non affectée</strong> sur le tableau de bord, et la personne pourra être désignée
+        plus tard. Une fois désignée, son nom, sa fonction et son téléphone sont transmis au client.
+        <a href="{{ url_for('gestion_convoyeurs') }}">Gérer les intervenants</a></p>
     </fieldset>
   </div>
 

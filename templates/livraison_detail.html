@@ -64,7 +64,9 @@
         <div><dt>Client</dt><dd>{{ liv.client_prenom }} {{ liv.client_nom }}<br>
           <span class="mono">{{ liv.client_tel }}</span><br><span class="sourdine">{{ liv.client_email }}</span></dd></div>
         <div><dt>Convoyeur</dt><dd>
-          {% if liv.convoyeur_nom %}{{ liv.convoyeur_nom }}<br><span class="mono">{{ liv.convoyeur_tel }}</span>
+          {% if liv.convoyeur_nom %}{{ liv.convoyeur_nom }}
+            {% if liv.convoyeur_fonction %}<small class="sourdine">{{ liv.convoyeur_fonction }}</small>{% endif %}
+            <br><span class="mono">{{ liv.convoyeur_tel }}</span>
           {% else %}<span class="non-affecte">Non affecté</span><br>
             <a href="{{ url_for('modifier_livraison', liv_id=liv.id) }}" class="lien-action">Désigner un convoyeur</a>
           {% endif %}</dd></div>
