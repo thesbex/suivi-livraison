@@ -149,14 +149,26 @@ def _vehicule(liv):
     return f"{liv['vehicule']} · {immat}" if immat else liv["vehicule"]
 
 
+def _reference(liv):
+    """Suffixe d'objet portant la réservation.
+
+    Sans lui, deux emails du même type ont un objet identique : Gmail les
+    regroupe en une seule conversation et masque le contenu répété derrière
+    un « … », obligeant le client à déplier pour lire son message.
+    """
+    ref = (liv.get("reservation_num") or liv.get("code") or "").strip()
+    return f" — {ref}" if ref else ""
+
+
 def composer(type_email, liv):
     """Retourne (objet, corps_html) pour un type d'email et une livraison donnés."""
     client = f"{liv['client_prenom']} {liv['client_nom']}"
+    ref = _reference(liv)
     lien_suivi = f"{BASE_URL}/suivi/{liv['token']}"
     lien_avis = f"{BASE_URL}/avis/{liv['token']}"
 
     if type_email == "creation":
-        objet = "Votre véhicule sera livré prochainement"
+        objet = "Votre véhicule sera livré prochainement" + ref
         contenu = (
             f"<p>Bonjour {client},</p>"
             f"<p>Votre véhicule sera livré selon les informations suivantes :</p>"
@@ -175,7 +187,7 @@ def composer(type_email, liv):
                                ("Suivre ma livraison", lien_suivi))
 
     if type_email == "rappel":
-        objet = f"Rappel — livraison de votre véhicule le {date_longue(liv['date_livraison'])}"
+        objet = f"Rappel — livraison de votre véhicule le {date_longue(liv['date_livraison'])}" + ref
         contenu = (
             f"<p>Bonjour {client},</p>"
             f"<p>Petit rappel : la livraison de votre véhicule est prévue prochainement.</p>"
@@ -193,7 +205,7 @@ def composer(type_email, liv):
                                ("Suivre ma livraison", lien_suivi))
 
     if type_email == "livraison":
-        objet = "Votre véhicule a été livré"
+        objet = "Votre véhicule a été livré" + ref
         contenu = (
             f"<p>Bonjour {client},</p>"
             f"<p>Votre véhicule vient de vous être livré. Voici le récapitulatif :</p>"
@@ -209,7 +221,7 @@ def composer(type_email, liv):
         return objet, _gabarit("Véhicule livré ✔", contenu, ("Donner mon avis", lien_avis))
 
     if type_email == "remerciement":
-        objet = "Merci pour votre retour"
+        objet = "Merci pour votre retour" + ref
         contenu = (
             f"<p>Bonjour {client},</p>"
             "<p>Nous avons bien reçu votre avis concernant la livraison de votre véhicule.</p>"
